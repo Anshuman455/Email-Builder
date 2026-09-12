@@ -1,0 +1,201 @@
+/* ══════════════════════════════ Tokens ══════════════════════════════
+ *
+ * Every colour, size and duration the builder uses, as custom properties on one root class.
+ *
+ * Two consequences, both deliberate:
+ *   · A host themes the entire editor by overriding a handful of variables — no Sass, no fork.
+ *   · Nothing cascades out. Every rule in this stylesheet is scoped under `.eb-root`, and every
+ *     class is prefixed `eb-`, so dropping the builder into an app with Bootstrap or Tailwind
+ *     already loaded cannot collide in either direction.
+ *
+ * ⚠️ These style the EDITOR CHROME. The email's own markup is built by @email-builder/core, is
+ * table-based and inline-styled, and shares nothing with this file. Never borrow between the two.
+ *
+ * ════════════════════════════════════════════════════════════════════════════════════════════ */
+
+.eb-root {
+  /* ── Surfaces ── */
+  --eb-bg: #f6f7f9;
+  --eb-surface: #ffffff;
+  --eb-surface-sunken: #f1f3f5;
+  --eb-surface-raised: #ffffff;
+  --eb-overlay: rgba(15, 23, 42, 0.45);
+
+  /* ── Ink ── */
+  --eb-text: #0f172a;
+  --eb-text-muted: #64748b;
+  --eb-text-subtle: #94a3b8;
+  --eb-text-inverse: #ffffff;
+
+  /* ── Lines ── */
+  --eb-border: #e2e8f0;
+  --eb-border-strong: #cbd5e1;
+
+  /* ── Accent ── */
+  --eb-accent: #2563eb;
+  --eb-accent-hover: #1d4ed8;
+  --eb-accent-soft: #eff6ff;
+  --eb-accent-ring: rgba(37, 99, 235, 0.35);
+
+  /* ── Status ── */
+  --eb-danger: #dc2626;
+  --eb-danger-soft: #fef2f2;
+  --eb-warning: #d97706;
+  --eb-warning-soft: #fffbeb;
+  --eb-success: #059669;
+  --eb-success-soft: #ecfdf5;
+
+  /* ── Geometry ── */
+  --eb-radius-sm: 4px;
+  --eb-radius: 8px;
+  --eb-radius-lg: 12px;
+  --eb-rail-width: 268px;
+  --eb-inspector-width: 320px;
+  --eb-toolbar-height: 52px;
+  --eb-control-height: 34px;
+  --eb-input-height: 36px;
+
+  /* ── Elevation ──
+     Two layers per token: a tight near-opaque shadow for the contact edge and a wide faint one
+     for the cast. One blurry shadow is what cheap elevation looks like. */
+  --eb-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --eb-shadow-2: 0 1px 3px rgba(15, 23, 42, 0.09), 0 6px 16px rgba(15, 23, 42, 0.07);
+  --eb-shadow-3: 0 2px 6px rgba(15, 23, 42, 0.10), 0 16px 40px rgba(15, 23, 42, 0.12);
+
+  /* ── Motion ── */
+  --eb-duration-fast: 120ms;
+  --eb-duration: 180ms;
+  --eb-ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --eb-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Type ── */
+  --eb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --eb-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  --eb-text-xs: 11px;
+  --eb-text-sm: 12px;
+  --eb-text-md: 13px;
+  --eb-text-lg: 15px;
+
+  /* ── Z-index ──
+     One scale, declared once. Ad-hoc z-indexes are how a drag ghost ends up under a panel. */
+  --eb-z-sticky: 10;
+  --eb-z-chrome: 20;
+  --eb-z-indicator: 60;
+  --eb-z-popover: 80;
+  --eb-z-modal: 100;
+  --eb-z-ghost: 120;
+
+  color-scheme: light;
+  font-family: var(--eb-font);
+  font-size: var(--eb-text-md);
+  color: var(--eb-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Dark ──
+ *
+ * Opt-in via `data-eb-theme="dark"`, and via `prefers-color-scheme` only when the host has asked
+ * for `auto`. A builder that flipped to dark because the OS did — inside a light application —
+ * would be a bug, not a feature. */
+.eb-root[data-eb-theme="dark"],
+.eb-root[data-eb-theme="auto"] {
+  color-scheme: dark;
+}
+
+.eb-root[data-eb-theme="dark"] {
+  --eb-bg: #0b1120;
+  --eb-surface: #121a2b;
+  --eb-surface-sunken: #0f1626;
+  --eb-surface-raised: #18223a;
+  --eb-overlay: rgba(2, 6, 23, 0.7);
+  --eb-text: #e2e8f0;
+  --eb-text-muted: #94a3b8;
+  --eb-text-subtle: #64748b;
+  --eb-border: #1e293b;
+  --eb-border-strong: #334155;
+  --eb-accent: #60a5fa;
+  --eb-accent-hover: #93c5fd;
+  --eb-accent-soft: #17233c;
+  --eb-accent-ring: rgba(96, 165, 250, 0.4);
+  --eb-danger-soft: #2a1414;
+  --eb-warning-soft: #2a2010;
+  --eb-success-soft: #0d2320;
+  --eb-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --eb-shadow-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --eb-shadow-3: 0 4px 12px rgba(0, 0, 0, 0.5), 0 20px 48px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  .eb-root[data-eb-theme="auto"] {
+    --eb-bg: #0b1120;
+    --eb-surface: #121a2b;
+    --eb-surface-sunken: #0f1626;
+    --eb-surface-raised: #18223a;
+    --eb-overlay: rgba(2, 6, 23, 0.7);
+    --eb-text: #e2e8f0;
+    --eb-text-muted: #94a3b8;
+    --eb-text-subtle: #64748b;
+    --eb-border: #1e293b;
+    --eb-border-strong: #334155;
+    --eb-accent: #60a5fa;
+    --eb-accent-hover: #93c5fd;
+    --eb-accent-soft: #17233c;
+    --eb-accent-ring: rgba(96, 165, 250, 0.4);
+  }
+}
+
+/* Reduced motion is honoured globally rather than per-animation: everything here is decoration,
+   and none of it carries meaning that survives only in the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .eb-root *,
+  .eb-root *::before,
+  .eb-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Reset ──
+   Scoped, and only what is needed to survive an opinionated host stylesheet. */
+.eb-root *,
+.eb-root *::before,
+.eb-root *::after {
+  box-sizing: border-box;
+}
+
+.eb-root button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.eb-root input,
+.eb-root textarea,
+.eb-root select {
+  font: inherit;
+  color: inherit;
+}
+
+.eb-root :focus-visible {
+  outline: 2px solid var(--eb-accent);
+  outline-offset: 2px;
+  border-radius: var(--eb-radius-sm);
+}
+
+.eb-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,248 @@
+/* ══════════════════════════════ Overlays ══════════════════════════════ */
+
+/* ── Drag ghost ──
+ *
+ * A copy of what is being dragged, following the pointer. Rendered into a fixed layer rather than
+ * moved in place: taking the real element out of flow collapses the row it came from, and the
+ * layout jumping around mid-drag is what makes a drop feel unpredictable. */
+
+.eb-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--eb-z-ghost);
+  pointer-events: none;
+  transform-origin: center;
+  opacity: 0.92;
+  will-change: transform;
+}
+
+.eb-ghost__inner {
+  padding: 8px 12px;
+  border-radius: var(--eb-radius);
+  background: var(--eb-surface-raised);
+  border: 1px solid var(--eb-accent);
+  box-shadow: var(--eb-shadow-3);
+  font-size: var(--eb-text-sm);
+  font-weight: 600;
+  color: var(--eb-text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  /* Slight tilt: the ghost reads as picked-up rather than as a second copy of the UI. */
+  transform: rotate(-1.5deg);
+}
+
+.eb-ghost__inner svg { width: 15px; height: 15px; color: var(--eb-accent); }
+
+.eb-dragging { cursor: grabbing !important; user-select: none !important; }
+.eb-dragging * { cursor: grabbing !important; }
+
+/* ── Drop indicator ──
+ *
+ * A line at the exact seam the thing would land in. A highlight on the neighbouring block leaves
+ * "above or below?" unanswered, which is the difference between a drop that feels aimed and one
+ * that feels like a guess. */
+
+.eb-indicator {
+  position: fixed;
+  z-index: var(--eb-z-indicator);
+  pointer-events: none;
+  background: var(--eb-accent);
+  border-radius: 2px;
+  transition: top 90ms var(--eb-ease), left 90ms var(--eb-ease), width 90ms var(--eb-ease), height 90ms var(--eb-ease);
+}
+
+.eb-indicator--vertical { height: 3px; transform: translateY(-1.5px); }
+.eb-indicator--horizontal { width: 3px; transform: translateX(-1.5px); }
+
+/* The end caps are what make a 3px line read as a deliberate insertion point rather than a
+   rendering artefact. */
+.eb-indicator--vertical::before,
+.eb-indicator--vertical::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--eb-accent);
+  transform: translateY(-50%);
+}
+
+.eb-indicator--vertical::before { left: -3px; }
+.eb-indicator--vertical::after { right: -3px; }
+
+.eb-indicator--inside {
+  background: transparent;
+  border: 2px solid var(--eb-accent);
+  border-radius: var(--eb-radius);
+  box-shadow: 0 0 0 4px var(--eb-accent-ring);
+}
+
+/* ── Modal ── */
+
+.eb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--eb-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--eb-overlay);
+  animation: eb-fade var(--eb-duration) var(--eb-ease);
+}
+
+.eb-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  max-height: 88vh;
+  background: var(--eb-surface);
+  border-radius: var(--eb-radius-lg);
+  box-shadow: var(--eb-shadow-3);
+  overflow: hidden;
+  animation: eb-rise var(--eb-duration) var(--eb-ease-out);
+}
+
+.eb-modal--wide { max-width: 1080px; }
+
+.eb-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--eb-border);
+  flex: none;
+}
+
+.eb-modal__title { flex: 1; font-size: var(--eb-text-lg); font-weight: 600; }
+.eb-modal__body { flex: 1; min-height: 0; overflow: auto; padding: 16px; }
+.eb-modal__body--flush { padding: 0; }
+
+.eb-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--eb-border);
+  flex: none;
+}
+
+@keyframes eb-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes eb-rise { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
+
+/* ── Preview ── */
+
+.eb-preview { display: flex; flex-direction: column; height: 100%; background: var(--eb-surface-sunken); }
+.eb-preview__bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--eb-border); background: var(--eb-surface); flex: none; }
+.eb-preview__stage { flex: 1; min-height: 0; overflow: auto; display: flex; justify-content: center; padding: 20px; }
+
+.eb-preview__frame {
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  background: #fff;
+  border-radius: var(--eb-radius);
+  box-shadow: var(--eb-shadow-2);
+  transition: max-width var(--eb-duration) var(--eb-ease-out);
+}
+
+.eb-preview__frame--mobile { max-width: 375px; }
+
+/* ── Code view ── */
+
+.eb-code {
+  margin: 0;
+  padding: 16px;
+  font-family: var(--eb-font-mono);
+  font-size: var(--eb-text-sm);
+  line-height: 1.6;
+  color: var(--eb-text);
+  background: var(--eb-surface-sunken);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+/* ── Pre-flight panel ── */
+
+.eb-issues { display: flex; flex-direction: column; gap: 8px; }
+
+.eb-issue {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--eb-border);
+  border-left-width: 3px;
+  border-radius: var(--eb-radius-sm);
+  background: var(--eb-surface);
+  text-align: left;
+  transition: background var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-issue:hover { background: var(--eb-surface-sunken); }
+.eb-issue--error { border-left-color: var(--eb-danger); }
+.eb-issue--warning { border-left-color: var(--eb-warning); }
+.eb-issue--info { border-left-color: var(--eb-accent); }
+
+.eb-issue__icon { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+.eb-issue--error .eb-issue__icon { color: var(--eb-danger); }
+.eb-issue--warning .eb-issue__icon { color: var(--eb-warning); }
+.eb-issue--info .eb-issue__icon { color: var(--eb-accent); }
+
+.eb-issue__message { font-size: var(--eb-text-md); font-weight: 500; line-height: 1.45; }
+.eb-issue__hint { font-size: var(--eb-text-sm); color: var(--eb-text-muted); line-height: 1.5; margin-top: 3px; }
+
+.eb-issues__clean {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px;
+  color: var(--eb-success);
+  font-size: var(--eb-text-md);
+  font-weight: 500;
+}
+
+.eb-issues__clean svg { width: 28px; height: 28px; }
+
+/* ── Skeleton ──
+ *
+ * Shaped like the content that is coming, built from the real layout's own class names, so
+ * nothing reflows when data lands. Never a spinner and never the word "Loading". */
+
+.eb-skeleton {
+  border-radius: var(--eb-radius-sm);
+  background: linear-gradient(90deg, var(--eb-surface-sunken) 25%, var(--eb-border) 37%, var(--eb-surface-sunken) 63%);
+  background-size: 400% 100%;
+  animation: eb-shimmer 1.3s ease-in-out infinite;
+}
+
+.eb-skeleton--circle { border-radius: 50%; }
+
+@keyframes eb-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* ── Tooltip ── */
+
+.eb-tooltip {
+  position: fixed;
+  z-index: var(--eb-z-popover);
+  padding: 4px 8px;
+  border-radius: var(--eb-radius-sm);
+  background: var(--eb-text);
+  color: var(--eb-surface);
+  font-size: var(--eb-text-xs);
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: var(--eb-shadow-2);
+}

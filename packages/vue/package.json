@@ -1,0 +1,29 @@
+{
+  "name": "@email-builder/vue",
+  "version": "0.1.0",
+  "description": "Vue 3 bindings for the email builder. A thin view layer over @email-builder/engine.",
+  "license": "MIT",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && vue-tsc --emitDeclarationOnly -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "vue": ">=3.4"
+  },
+  "dependencies": {
+    "@email-builder/core": "0.1.0",
+    "@email-builder/engine": "0.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.2.0"
+  }
+}

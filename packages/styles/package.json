@@ -1,0 +1,11 @@
+{
+  "name": "@email-builder/styles",
+  "version": "0.1.0",
+  "description": "The builder chrome stylesheet. Namespaced .eb-* and themed entirely through CSS custom properties.",
+  "license": "MIT",
+  "main": "./dist/email-builder.css",
+  "style": "./dist/email-builder.css",
+  "exports": { ".": "./dist/email-builder.css", "./css": "./dist/email-builder.css" },
+  "files": ["dist", "src"],
+  "scripts": { "build": "node build.mjs" }
+}

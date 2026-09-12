@@ -1,0 +1,47 @@
+/* ═══ Rich-text control ═══
+ *
+ * `contenteditable` must stay uncontrolled: writing `innerHTML` on every keystroke moves the
+ * caret to the end. The DOM is only synced when the incoming value differs from what is already
+ * rendered — which happens on undo, on a merge-token insert, or when the selection changes. */
+
+import { useEffect, useRef } from "react";
+import { asString } from "../../types";
+
+export interface RichTextControlProps {
+  value: unknown;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  label: string;
+}
+
+export function RichTextControl({ value, onChange, placeholder, label }: RichTextControlProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const html = asString(value);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || node.innerHTML === html) return;
+    node.innerHTML = html;
+  }, [html]);
+
+  return (
+    <div
+      ref={ref}
+      className="eb-textarea"
+      contentEditable
+      suppressContentEditableWarning
+      role="textbox"
+      aria-multiline="true"
+      aria-label={label}
+      data-placeholder={placeholder}
+      onBlur={(event) => onChange(event.currentTarget.innerHTML)}
+      onKeyDown={(event) => {
+        /* Escape commits and gets out; the canvas keyboard map must not see it either. */
+        if (event.key === "Escape") {
+          event.stopPropagation();
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}

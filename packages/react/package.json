@@ -1,0 +1,32 @@
+{
+  "name": "@email-builder/react",
+  "version": "0.1.0",
+  "description": "React bindings for the email builder. Thin view layer over @email-builder/engine — no document logic, no drag logic.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap --external react --external react-dom --external @email-builder/core --external @email-builder/engine"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@email-builder/core": "0.1.0",
+    "@email-builder/engine": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

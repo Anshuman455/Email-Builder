@@ -1,0 +1,279 @@
+/* ══════════════════════════════ Canvas ══════════════════════════════ */
+
+.eb-canvas {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px 24px 140px;
+  background: var(--eb-bg);
+  /* The email sheet is an opaque white surface; a subtle grid behind it says "this is a canvas,
+     not a document" without competing with the content. */
+  background-image: radial-gradient(circle at 1px 1px, var(--eb-border) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.eb-sheet {
+  margin: 0 auto;
+  background: var(--eb-surface);
+  box-shadow: var(--eb-shadow-2);
+  border-radius: var(--eb-radius);
+  transition: width var(--eb-duration) var(--eb-ease-out);
+  /* Rows draw their own overflowing chrome (the hover toolbar sits outside the row); clipping
+     here would cut it off. */
+  overflow: visible;
+}
+
+.eb-sheet--mobile { width: 375px !important; }
+
+/* ── Row ── */
+
+.eb-row {
+  position: relative;
+  transition: outline-color var(--eb-duration-fast) var(--eb-ease);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+}
+
+.eb-row:hover { outline-color: var(--eb-border-strong); }
+.eb-row--selected { outline: 2px solid var(--eb-accent); outline-offset: -2px; }
+
+.eb-row__columns { display: flex; align-items: stretch; }
+
+.eb-row__toolbar {
+  position: absolute;
+  top: 0;
+  left: -40px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px;
+  background: var(--eb-surface-raised);
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius-sm);
+  box-shadow: var(--eb-shadow-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--eb-duration-fast) var(--eb-ease);
+  z-index: var(--eb-z-chrome);
+}
+
+/* The transparent bridge. Without it the 8px gap between the row and its toolbar is a dead zone:
+   the pointer leaves the row, the toolbar hides, and the toolbar becomes unclickable. */
+.eb-row__toolbar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -10px;
+  width: 10px;
+  height: 100%;
+}
+
+.eb-row:hover > .eb-row__toolbar,
+.eb-row--selected > .eb-row__toolbar,
+.eb-row__toolbar:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.eb-row__toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  color: var(--eb-text-muted);
+  transition: background var(--eb-duration-fast) var(--eb-ease), color var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-row__toolbar-btn:hover { background: var(--eb-surface-sunken); color: var(--eb-text); }
+.eb-row__toolbar-btn--danger:hover { background: var(--eb-danger-soft); color: var(--eb-danger); }
+.eb-row__toolbar-btn--drag { cursor: grab; }
+.eb-row__toolbar-btn svg { width: 15px; height: 15px; }
+
+/* ── Column ── */
+
+.eb-column {
+  position: relative;
+  min-width: 0;
+  min-height: 48px;
+  transition: background var(--eb-duration-fast) var(--eb-ease), outline-color var(--eb-duration-fast) var(--eb-ease);
+  outline: 1px dashed transparent;
+  outline-offset: -1px;
+}
+
+.eb-column--empty { min-height: 72px; display: flex; align-items: center; justify-content: center; }
+.eb-column--selected { outline-color: var(--eb-accent); }
+.eb-column--over { background: var(--eb-accent-soft); outline-color: var(--eb-accent); }
+
+.eb-column__hint {
+  font-size: var(--eb-text-sm);
+  color: var(--eb-text-subtle);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Block ── */
+
+.eb-block {
+  position: relative;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition: outline-color var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-block:hover { outline-color: var(--eb-accent-ring); }
+.eb-block--selected { outline: 2px solid var(--eb-accent); outline-offset: -2px; }
+
+/* A block the author just dropped, duplicated or moved. After a drop the eye is on the pointer,
+   not on the column the block landed in — this is what brings it back. */
+.eb-block--landed,
+.eb-row--landed { animation: eb-land 620ms var(--eb-ease-out); }
+
+@keyframes eb-land {
+  0% { background-color: var(--eb-accent-soft); }
+  100% { background-color: transparent; }
+}
+
+.eb-block__toolbar {
+  position: absolute;
+  top: -13px;
+  right: 6px;
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  background: var(--eb-surface-raised);
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius-sm);
+  box-shadow: var(--eb-shadow-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--eb-duration-fast) var(--eb-ease);
+  z-index: var(--eb-z-chrome);
+}
+
+.eb-block:hover > .eb-block__toolbar,
+.eb-block--selected > .eb-block__toolbar { opacity: 1; pointer-events: auto; }
+
+.eb-block__toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  color: var(--eb-text-muted);
+}
+
+.eb-block__toolbar-btn:hover { background: var(--eb-surface-sunken); color: var(--eb-text); }
+.eb-block__toolbar-btn--danger:hover { background: var(--eb-danger-soft); color: var(--eb-danger); }
+.eb-block__toolbar-btn--drag { cursor: grab; }
+.eb-block__toolbar-btn svg { width: 13px; height: 13px; }
+
+.eb-block__label {
+  position: absolute;
+  top: -13px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--eb-accent);
+  color: #fff;
+  font-size: var(--eb-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-block--selected > .eb-block__label { opacity: 1; }
+
+/* Rendered block HTML. It is email markup — tables with inline styles — dropped into the canvas
+   as-is, so preview and inbox cannot diverge. */
+.eb-block__render { pointer-events: none; }
+.eb-block--editing .eb-block__render { pointer-events: auto; }
+
+.eb-block__render [contenteditable] {
+  outline: none;
+  cursor: text;
+}
+
+.eb-block__render [contenteditable]:focus {
+  box-shadow: 0 0 0 2px var(--eb-accent-ring);
+  border-radius: 2px;
+}
+
+/* Placeholders emitted by blocks in preview mode — an image with no source, an empty slot. */
+.eb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--eb-border-strong);
+  border-radius: var(--eb-radius-sm);
+  background: var(--eb-surface-sunken);
+  color: var(--eb-text-subtle);
+  font-family: var(--eb-font);
+  font-size: var(--eb-text-sm);
+}
+
+.eb-placeholder--slot { border-color: var(--eb-accent); color: var(--eb-accent); background: var(--eb-accent-soft); }
+.eb-placeholder--error { border-color: var(--eb-danger); color: var(--eb-danger); background: var(--eb-danger-soft); padding: 12px; }
+
+/* ── Row slots ──
+   The gaps between rows. 6px at rest so they do not push the layout around, expanding on hover
+   during a drag so they are actually hittable. */
+
+.eb-row-slot {
+  position: relative;
+  height: 6px;
+  transition: height var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-dragging .eb-row-slot { height: 22px; }
+
+.eb-row-slot__add {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-row-slot:hover .eb-row-slot__add { opacity: 1; }
+.eb-dragging .eb-row-slot__add { display: none; }
+
+.eb-row-slot__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--eb-accent);
+  color: #fff;
+  box-shadow: var(--eb-shadow-2);
+}
+
+.eb-row-slot__add-btn svg { width: 13px; height: 13px; }
+
+/* ── Empty canvas ── */
+
+.eb-canvas__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  padding: 40px;
+  border: 2px dashed var(--eb-border-strong);
+  border-radius: var(--eb-radius-lg);
+  color: var(--eb-text-subtle);
+  text-align: center;
+}
+
+.eb-canvas__empty--over { border-color: var(--eb-accent); background: var(--eb-accent-soft); color: var(--eb-accent); }

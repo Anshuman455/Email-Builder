@@ -1,0 +1,28 @@
+{
+  "name": "@email-builder/engine",
+  "version": "0.1.0",
+  "description": "Headless editor controller, drag engine and inline-edit controller. Framework-agnostic DOM.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap --external @email-builder/core",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@email-builder/core": "0.1.0"
+  }
+}

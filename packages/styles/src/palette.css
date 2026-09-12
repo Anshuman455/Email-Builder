@@ -1,0 +1,163 @@
+/* ══════════════════════════════ Palette ══════════════════════════════ */
+
+.eb-palette {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--eb-rail-width);
+  width: var(--eb-rail-width);
+  min-height: 0;
+  background: var(--eb-surface);
+  border-right: 1px solid var(--eb-border);
+}
+
+.eb-palette__header { padding: 12px 12px 8px; }
+
+.eb-palette__search {
+  width: 100%;
+  height: var(--eb-input-height);
+  padding: 0 10px;
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius-sm);
+  background: var(--eb-surface-sunken);
+  font-size: var(--eb-text-md);
+}
+
+.eb-palette__search:focus {
+  outline: none;
+  border-color: var(--eb-accent);
+  box-shadow: 0 0 0 3px var(--eb-accent-ring);
+  background: var(--eb-surface);
+}
+
+.eb-palette__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 12px 16px;
+}
+
+.eb-palette__group + .eb-palette__group { margin-top: 16px; }
+
+.eb-palette__group-title {
+  font-size: var(--eb-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--eb-text-subtle);
+  margin: 0 0 8px 2px;
+}
+
+.eb-palette__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* ── A palette item ──
+ *
+ * The whole tile is the drag handle. `touch-action: none` is set by the drag engine rather than
+ * here, because only the engine knows which element it actually bound to. */
+
+.eb-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 6px;
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius);
+  background: var(--eb-surface);
+  color: var(--eb-text-muted);
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+  transition: border-color var(--eb-duration-fast) var(--eb-ease),
+              background var(--eb-duration-fast) var(--eb-ease),
+              color var(--eb-duration-fast) var(--eb-ease),
+              transform var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-palette-item:hover {
+  border-color: var(--eb-accent);
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+}
+
+.eb-palette-item:active { cursor: grabbing; transform: scale(0.97); }
+
+.eb-palette-item__icon {
+  display: flex;
+  width: 22px;
+  height: 22px;
+}
+
+.eb-palette-item__icon svg { width: 100%; height: 100%; }
+
+.eb-palette-item__label {
+  font-size: var(--eb-text-sm);
+  font-weight: 500;
+  color: var(--eb-text);
+  line-height: 1.2;
+}
+
+.eb-palette__empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: var(--eb-text-sm);
+  color: var(--eb-text-subtle);
+}
+
+/* ── Layout picker ── */
+
+.eb-layouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.eb-layout-item {
+  display: flex;
+  gap: 3px;
+  padding: 10px 8px;
+  height: 44px;
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius);
+  background: var(--eb-surface);
+  cursor: grab;
+  transition: border-color var(--eb-duration-fast) var(--eb-ease), background var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-layout-item:hover { border-color: var(--eb-accent); background: var(--eb-accent-soft); }
+
+.eb-layout-item__col {
+  background: var(--eb-border-strong);
+  border-radius: 2px;
+  min-width: 4px;
+}
+
+.eb-layout-item:hover .eb-layout-item__col { background: var(--eb-accent); }
+
+/* ── Structure tree ──
+   The outline view — how an author reaches a block inside a collapsed or tall row. */
+
+.eb-tree { padding: 4px 0; }
+
+.eb-tree__node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: var(--eb-radius-sm);
+  font-size: var(--eb-text-sm);
+  color: var(--eb-text-muted);
+  text-align: left;
+  transition: background var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-tree__node:hover { background: var(--eb-surface-sunken); color: var(--eb-text); }
+.eb-tree__node--active { background: var(--eb-accent-soft); color: var(--eb-accent); font-weight: 600; }
+.eb-tree__node--block { padding-left: 24px; }
+.eb-tree__node svg { width: 14px; height: 14px; flex: none; }
+.eb-tree__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

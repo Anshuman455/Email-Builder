@@ -1,0 +1,113 @@
+/* ══════════════════════════════ Inspector ══════════════════════════════ */
+
+.eb-inspector {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--eb-inspector-width);
+  width: var(--eb-inspector-width);
+  min-height: 0;
+  background: var(--eb-surface);
+  border-left: 1px solid var(--eb-border);
+}
+
+.eb-inspector__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--eb-border);
+  flex: none;
+}
+
+.eb-inspector__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--eb-radius-sm);
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+  flex: none;
+}
+
+.eb-inspector__icon svg { width: 15px; height: 15px; }
+
+.eb-inspector__title {
+  font-size: var(--eb-text-md);
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eb-inspector__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Space for the last group's focus ring — a field flush against the bottom edge looks clipped
+     the moment it is focused. */
+  padding-bottom: 32px;
+}
+
+.eb-inspector__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--eb-text-subtle);
+  font-size: var(--eb-text-sm);
+  line-height: 1.6;
+}
+
+.eb-inspector__empty svg { width: 32px; height: 32px; opacity: 0.4; }
+
+/* ── Group ── */
+
+.eb-group { border-bottom: 1px solid var(--eb-border); }
+
+.eb-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 11px 12px;
+  font-size: var(--eb-text-sm);
+  font-weight: 600;
+  color: var(--eb-text);
+  text-align: left;
+}
+
+.eb-group__header:hover { background: var(--eb-surface-sunken); }
+
+.eb-group__chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--eb-text-subtle);
+  transition: transform var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-group--collapsed .eb-group__chevron { transform: rotate(-90deg); }
+
+.eb-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px 12px 14px;
+}
+
+.eb-group--collapsed .eb-group__body { display: none; }
+
+/* ── Row of inline fields ──
+   Two controls that belong together — size and weight, X and Y padding. */
+
+.eb-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}

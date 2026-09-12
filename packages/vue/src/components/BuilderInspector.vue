@@ -1,0 +1,524 @@
+<script setup lang="ts">
+/* ═══ BuilderInspector ═══
+ *
+ * Right rail matching Growtality:
+ * When nothing selected:
+ *  - Email Settings (Global styles & frame)
+ *  - Canvas Quick Tips
+ *  - Brand (Font, Text colour swatches, Link colour swatches)
+ *  - Background
+ *  - Canvas Sizing & Width (Width 600px, Padding TRBL)
+ * When item selected:
+ *  - Header with Back to All Settings button
+ *  - Block properties / Row properties
+ */
+
+import { computed, ref } from "vue";
+import type { FieldGroup } from "@email-builder/core";
+import { useEditor } from "../context";
+import { useEditorSelector } from "../composables";
+import { rowGroups, columnGroups, LAYOUT_KEY, layoutValue, parseLayout } from "../schemas";
+import BuilderField from "./BuilderField.vue";
+
+const props = defineProps<{ class?: string }>();
+
+const editor = useEditor();
+
+const selection = useEditorSelector((state) => state.selection);
+const document = useEditorSelector((state) => state.document);
+
+const selectionKind = computed(() => selection.value?.kind ?? null);
+
+/* ─── Block panel ─── */
+const selectedBlock = computed(() => {
+  const sel = selection.value;
+  if (sel?.kind !== "block") return null;
+  const doc = document.value;
+  for (const row of doc.rows)
+    for (const col of row.columns)
+      for (const b of col.blocks) if (b.id === sel.id) return b;
+  return null;
+});
+
+const blockSchema = computed<FieldGroup[]>(() => {
+  if (!selectedBlock.value) return [];
+  return editor.getSchema();
+});
+
+function blockValue(group: FieldGroup, key: string) {
+  const b = selectedBlock.value;
+  if (!b) return undefined;
+  return group.target === "content" ? (b.content ?? {})[key] : (b.style ?? {})[key];
+}
+
+function blockChange(group: FieldGroup, key: string, value: unknown) {
+  const b = selectedBlock.value;
+  if (!b) return;
+  if (group.target === "content") editor.updateContent(b.id, { [key]: value });
+  else editor.updateStyle(b.id, { [key]: value });
+}
+
+/* ─── Row panel ─── */
+const selectedRow = computed(() => {
+  const sel = selection.value;
+  if (sel?.kind !== "row") return null;
+  return document.value.rows.find((r) => r.id === sel.id) ?? null;
+});
+
+const rowSchema = computed(() => rowGroups());
+
+function rowValue(key: string): unknown {
+  const row = selectedRow.value;
+  if (!row) return undefined;
+  if (key === LAYOUT_KEY) return layoutValue(row);
+  return (row.style as any)?.[key];
+}
+
+function rowChange(key: string, value: unknown) {
+  const row = selectedRow.value;
+  if (!row) return;
+  if (key === LAYOUT_KEY) editor.setRowLayout(row.id, parseLayout(value));
+  else editor.updateRowStyle(row.id, { [key]: value });
+}
+
+/* ─── Settings panel ─── */
+const settings = computed(() => document.value.settings);
+
+function updateSettings(changes: Record<string, unknown>) {
+  editor.updateSettings(changes);
+}
+
+const isPaddingLinked = ref(true);
+
+function updatePadding(side: "top" | "right" | "bottom" | "left", val: number) {
+  const current = (settings.value as any)?.padding || { top: 24, right: 24, bottom: 24, left: 24 };
+  if (isPaddingLinked.value) {
+    updateSettings({ padding: { top: val, right: val, bottom: val, left: val } });
+  } else {
+    updateSettings({ padding: { ...current, [side]: val } });
+  }
+}
+
+const GLOBAL_FONTS = [
+  { value: "Arial, Helvetica, sans-serif", label: "Arial" },
+  { value: "Helvetica, Arial, sans-serif", label: "Helvetica" },
+  { value: "Verdana, Geneva, sans-serif", label: "Verdana" },
+  { value: "Tahoma, Geneva, sans-serif", label: "Tahoma" },
+  { value: "'Trebuchet MS', Helvetica, sans-serif", label: "Trebuchet MS" },
+  { value: "Georgia, 'Times New Roman', serif", label: "Georgia" },
+  { value: "'Times New Roman', Times, serif", label: "Times New Roman" },
+  { value: "'Courier New', Courier, monospace", label: "Courier New" },
+];
+
+const TEXT_COLORS = ["#333333", "#666666", "#2563eb", "#cbd5e1", "#0f172a"];
+const LINK_COLORS = ["#0f172a", "#1e40af", "#0066cc", "#60a5fa", "#06b6d4"];
+
+const ICONS_MAP: Record<string, string> = {
+  heading: "title",
+  text: "notes",
+  image: "image",
+  button: "smart_button",
+  divider: "horizontal_rule",
+  spacer: "height",
+  social: "share",
+  html: "code",
+  menu_item: "restaurant_menu",
+  coupon: "confirmation_number",
+  reserve_cta: "calendar_month",
+  review_request: "star",
+};
+
+function deselect() {
+  editor.select(null);
+}
+</script>
+
+<template>
+  <aside class="builder-inspector" aria-label="Inspector">
+    <!-- Email Settings Header (when nothing selected or settings) -->
+    <header v-if="!selectionKind || selectionKind === 'settings'" class="builder-inspector__header">
+      <div class="builder-inspector__header-title">
+        <span class="builder-inspector__header-icon">
+          <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+        </span>
+        <div>
+          <span class="builder-inspector__title-main">Email Settings</span>
+          <span class="builder-inspector__title-sub">Global styles &amp; frame</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Block Header -->
+    <header v-else-if="selectionKind === 'block' && selectedBlock" class="builder-inspector__header">
+      <div class="builder-inspector__header-title">
+        <span class="builder-inspector__header-icon">
+          <span class="material-symbols-outlined" aria-hidden="true">
+            {{ ICONS_MAP[selectedBlock.type] || "widgets" }}
+          </span>
+        </span>
+        <div>
+          <span class="builder-inspector__title-main">
+            {{ editor.blocks.get(selectedBlock.type)?.label || selectedBlock.type }}
+          </span>
+          <span class="builder-inspector__title-sub">Block properties</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="builder-inspector__nav-btn"
+        title="Back to Email Settings"
+        @click="deselect"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <span>All Settings</span>
+      </button>
+    </header>
+
+    <!-- Row Header -->
+    <header v-else-if="selectionKind === 'row' && selectedRow" class="builder-inspector__header">
+      <div class="builder-inspector__header-title">
+        <span class="builder-inspector__header-icon">
+          <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>
+        </span>
+        <div>
+          <span class="builder-inspector__title-main">Row Settings</span>
+          <span class="builder-inspector__title-sub">Columns &amp; layout</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="builder-inspector__nav-btn"
+        title="Back to Email Settings"
+        @click="deselect"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <span>All Settings</span>
+      </button>
+    </header>
+
+    <!-- Inspector Scroll Body -->
+    <div class="builder-inspector__scroll">
+      <!-- ─── Global Email Settings ─── -->
+      <template v-if="!selectionKind || selectionKind === 'settings'">
+        <!-- Canvas Quick Tips -->
+        <div class="inspector-legend">
+          <div class="inspector-legend__header">
+            <span class="material-symbols-outlined inspector-legend__header-icon" aria-hidden="true">
+              lightbulb
+            </span>
+            <span class="inspector-legend__header-title">Canvas Quick Tips</span>
+          </div>
+          <div class="inspector-legend__items">
+            <div class="inspector-legend__item">
+              <span class="inspector-legend__item-badge">
+                <span class="material-symbols-outlined" aria-hidden="true">widgets</span>
+              </span>
+              <span>Click any block to customize its text, styling &amp; colors</span>
+            </div>
+            <div class="inspector-legend__item">
+              <span class="inspector-legend__item-badge">
+                <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>
+              </span>
+              <span>Click outer space around content to edit row layout</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brand Section -->
+        <details class="eb-group" open>
+          <summary class="eb-group__header">
+            Brand
+            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+          </summary>
+          <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 14px; padding: 12px 16px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151;">Font</label>
+              <select
+                :value="settings.fontFamily || GLOBAL_FONTS[0]!.value"
+                style="width: 100%; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 10px; font-size: 13px; background: #fff;"
+                @change="updateSettings({ fontFamily: ($event.target as HTMLSelectElement).value })"
+              >
+                <option v-for="f in GLOBAL_FONTS" :key="f.value" :value="f.value">{{ f.label }}</option>
+              </select>
+              <span style="display: block; font-size: 11px; color: #9ca3af; margin-top: 4px;">
+                Web-safe fonts only — custom fonts do not render in Outlook.
+              </span>
+            </div>
+
+            <!-- Text Colour -->
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Text colour</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input
+                  type="color"
+                  :value="settings.textColor || '#333333'"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  @input="updateSettings({ textColor: ($event.target as HTMLInputElement).value })"
+                />
+                <input
+                  type="text"
+                  :value="settings.textColor || '#333333'"
+                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  @change="updateSettings({ textColor: ($event.target as HTMLInputElement).value })"
+                />
+              </div>
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                <button
+                  v-for="c in TEXT_COLORS"
+                  :key="c"
+                  type="button"
+                  :style="{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    backgroundColor: c,
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    cursor: 'pointer'
+                  }"
+                  @click="updateSettings({ textColor: c })"
+                />
+              </div>
+            </div>
+
+            <!-- Link Colour -->
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Link colour</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input
+                  type="color"
+                  :value="settings.linkColor || '#0066cc'"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  @input="updateSettings({ linkColor: ($event.target as HTMLInputElement).value })"
+                />
+                <input
+                  type="text"
+                  :value="settings.linkColor || '#0066cc'"
+                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  @change="updateSettings({ linkColor: ($event.target as HTMLInputElement).value })"
+                />
+              </div>
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                <button
+                  v-for="c in LINK_COLORS"
+                  :key="c"
+                  type="button"
+                  :style="{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    backgroundColor: c,
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    cursor: 'pointer'
+                  }"
+                  @click="updateSettings({ linkColor: c })"
+                />
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Background Section -->
+        <details class="eb-group">
+          <summary class="eb-group__header">
+            Background
+            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+          </summary>
+          <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 12px; padding: 12px 16px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Page background</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input
+                  type="color"
+                  :value="settings.backgroundColor || '#f4f4f5'"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  @input="updateSettings({ backgroundColor: ($event.target as HTMLInputElement).value })"
+                />
+                <input
+                  type="text"
+                  :value="settings.backgroundColor || '#f4f4f5'"
+                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  @change="updateSettings({ backgroundColor: ($event.target as HTMLInputElement).value })"
+                />
+              </div>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Email background</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input
+                  type="color"
+                  :value="settings.contentBackgroundColor || '#ffffff'"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  @input="updateSettings({ contentBackgroundColor: ($event.target as HTMLInputElement).value })"
+                />
+                <input
+                  type="text"
+                  :value="settings.contentBackgroundColor || '#ffffff'"
+                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  @change="updateSettings({ contentBackgroundColor: ($event.target as HTMLInputElement).value })"
+                />
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Canvas Sizing & Width Section -->
+        <details class="eb-group" open>
+          <summary class="eb-group__header">
+            Canvas Sizing &amp; Width
+            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+          </summary>
+          <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 14px; padding: 12px 16px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151;">Width</label>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <input
+                  type="number"
+                  :value="settings.contentWidth || 600"
+                  min="320"
+                  max="800"
+                  style="width: 100%; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 10px; font-size: 13px;"
+                  @change="updateSettings({ contentWidth: Number(($event.target as HTMLInputElement).value) })"
+                />
+                <span style="font-size: 12px; color: #6b7280; font-weight: 500;">px</span>
+              </div>
+              <span style="display: block; font-size: 11px; color: #9ca3af; margin-top: 4px;">
+                600px is what every email client agrees on. Change it only if you know why.
+              </span>
+            </div>
+
+            <!-- Padding TRBL -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 12px; font-weight: 600; color: #374151;">Padding</label>
+                <button
+                  type="button"
+                  :style="{
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    color: isPaddingLinked ? '#2563eb' : '#9ca3af'
+                  }"
+                  :title="isPaddingLinked ? 'Unlink padding sides' : 'Link all padding sides'"
+                  @click="isPaddingLinked = !isPaddingLinked"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 16px;">
+                    {{ isPaddingLinked ? 'link' : 'link_off' }}
+                  </span>
+                </button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center;">
+                <div>
+                  <span style="font-size: 10px; color: #9ca3af; display: block;">T</span>
+                  <input
+                    type="number"
+                    :value="(settings as any)?.padding?.top ?? 24"
+                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    @change="updatePadding('top', Number(($event.target as HTMLInputElement).value))"
+                  />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #9ca3af; display: block;">R</span>
+                  <input
+                    type="number"
+                    :value="(settings as any)?.padding?.right ?? 24"
+                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    @change="updatePadding('right', Number(($event.target as HTMLInputElement).value))"
+                  />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #9ca3af; display: block;">B</span>
+                  <input
+                    type="number"
+                    :value="(settings as any)?.padding?.bottom ?? 24"
+                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    @change="updatePadding('bottom', Number(($event.target as HTMLInputElement).value))"
+                  />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #9ca3af; display: block;">L</span>
+                  <input
+                    type="number"
+                    :value="(settings as any)?.padding?.left ?? 24"
+                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    @change="updatePadding('left', Number(($event.target as HTMLInputElement).value))"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </template>
+
+      <!-- ─── Selected Block ─── -->
+      <template v-else-if="selectionKind === 'block' && selectedBlock">
+        <details
+          v-for="group in blockSchema"
+          :key="group.title"
+          class="eb-group"
+          open
+        >
+          <summary class="eb-group__header">
+            {{ group.title }}
+            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+          </summary>
+          <div class="eb-group__body">
+            <template v-for="(field, fi) in group.fields" :key="field.key">
+              <div v-if="field.inline && fi > 0 && !group.fields[fi - 1]?.inline" />
+              <div
+                v-if="field.inline || (group.fields[fi + 1]?.inline && !field.inline)"
+                class="eb-field-row"
+              >
+                <BuilderField
+                  v-if="!field.inline"
+                  :field="field"
+                  :value="blockValue(group, field.key)"
+                  :block="selectedBlock"
+                  @change="blockChange(group, field.key, $event)"
+                />
+                <BuilderField
+                  v-if="field.inline"
+                  :field="field"
+                  :value="blockValue(group, field.key)"
+                  :block="selectedBlock"
+                  @change="blockChange(group, field.key, $event)"
+                />
+              </div>
+              <BuilderField
+                v-else-if="!field.inline && !group.fields[fi + 1]?.inline"
+                :field="field"
+                :value="blockValue(group, field.key)"
+                :block="selectedBlock"
+                @change="blockChange(group, field.key, $event)"
+              />
+            </template>
+          </div>
+        </details>
+      </template>
+
+      <!-- ─── Selected Row ─── -->
+      <template v-else-if="selectionKind === 'row' && selectedRow">
+        <details
+          v-for="group in rowSchema"
+          :key="group.title"
+          class="eb-group"
+          :open="!group.collapsed"
+        >
+          <summary class="eb-group__header">
+            {{ group.title }}
+            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+          </summary>
+          <div class="eb-group__body">
+            <BuilderField
+              v-for="field in group.fields"
+              :key="field.key"
+              :field="field"
+              :value="rowValue(field.key)"
+              @change="rowChange(field.key, $event)"
+            />
+          </div>
+        </details>
+      </template>
+    </div>
+  </aside>
+</template>
+
