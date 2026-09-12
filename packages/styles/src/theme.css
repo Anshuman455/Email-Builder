@@ -1,4 +1,4 @@
-/* ══════════════════════════════ Growtality Email Builder CSS ══════════════════════════════ */
+/* ══════════════════════════════ Modern Email Builder Theme CSS ══════════════════════════════ */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block");
 
 .material-symbols-outlined {
@@ -887,7 +887,8 @@
   display: flex;
 }
 
-.palette-block__icon-wrap {
+.palette-block__icon-wrap,
+.palette-block__icon {
   color: #374151;
   background: #f3f4f6;
   border-radius: 7px;
@@ -899,8 +900,26 @@
   display: flex;
 }
 
-.palette-block__icon-wrap .material-symbols-outlined {
+.palette-block__icon-wrap .material-symbols-outlined,
+.palette-block__icon .material-symbols-outlined {
   font-size: 20px;
+}
+
+.palette-block__icon-wrap svg,
+.palette-block__icon svg,
+.palette-block__svg-host svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.palette-block__svg-host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -911,7 +930,8 @@
     box-shadow: 0 4px 14px #39464814;
   }
 
-  .palette-block:hover .palette-block__icon-wrap {
+  .palette-block:hover .palette-block__icon-wrap,
+  .palette-block:hover .palette-block__icon {
     color: #fff;
     background: #394648;
   }
@@ -1374,12 +1394,19 @@
   border: none;
   border-radius: 6px;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  font-size: 11px;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
   font-weight: 500;
   transition: all .15s cubic-bezier(.4, 0, .2, 1);
   display: inline-flex;
+}
+
+.builder-canvas__viewport-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
 }
 
 .builder-canvas__viewport-btn .material-symbols-outlined {
@@ -1391,14 +1418,21 @@
   background: #f9fafb;
 }
 
-.builder-canvas__viewport-btn--active {
-  color: #fff;
-  background: #394648;
-  font-weight: 600;
+.builder-canvas__viewport-btn--active,
+.builder-canvas__viewport-segmented .builder-canvas__viewport-btn--active {
+  color: #ffffff !important;
+  background-color: #394648 !important;
+  font-weight: 600 !important;
 }
 
-.builder-canvas__viewport-btn--active .material-symbols-outlined {
-  color: #fff;
+.builder-canvas__viewport-btn--active svg,
+.builder-canvas__viewport-segmented .builder-canvas__viewport-btn--active svg {
+  stroke: #ffffff !important;
+}
+
+.builder-canvas__viewport-btn--active .material-symbols-outlined,
+.builder-canvas__viewport-segmented .builder-canvas__viewport-btn--active .material-symbols-outlined {
+  color: #ffffff !important;
 }
 
 .builder-canvas__viewport-info {

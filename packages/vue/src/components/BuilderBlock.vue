@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* ═══ BuilderBlock ═══
  *
- * A block on the canvas matching Growtality:
+ * A block on the canvas:
  * Floating action bar:
  *  - Label: Image, Heading, etc.
  *  - drag_indicator

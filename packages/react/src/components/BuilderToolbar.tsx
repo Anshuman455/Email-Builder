@@ -1,6 +1,6 @@
 /* ═══ BuilderToolbar ═══
  *
- * Growtality-style top toolbar:
+ * Top toolbar:
  * Left: Back button, Title, "EMAIL TEMPLATE" badge, Subtitle, Undo/Redo pill group, Save status
  * Right: AI Assistant, Import, Code, Ready status, Preview
  */
@@ -23,8 +23,8 @@ export interface BuilderToolbarProps {
 }
 
 export function BuilderToolbar({
-  title = "Charcoal Grill",
-  subtitle = "A warm autumn welcome – new menu at {{restaurant.name}}",
+  title = "Monthly Newsletter",
+  subtitle = "A monthly update for our community",
   badgeLabel = "EMAIL TEMPLATE",
   backLabel = "Templates",
   onBack,
@@ -62,17 +62,20 @@ export function BuilderToolbar({
     <header className={`builder-toolbar ${className ?? ""}`.trim()}>
       {/* Left: Back button, Title & Badge, Undo/Redo, Save status */}
       <div className="builder-toolbar__side">
-        <button
-          type="button"
-          className="builder-toolbar__back-btn"
-          title={`Back to ${backLabel}`}
-          onClick={onBack}
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-          <span className="builder-toolbar__back-label">{backLabel}</span>
-        </button>
-
-        <span className="builder-toolbar__divider" aria-hidden="true" />
+        {onBack && (
+          <>
+            <button
+              type="button"
+              className="builder-toolbar__back-btn"
+              title={`Back to ${backLabel}`}
+              onClick={onBack}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+              <span className="builder-toolbar__back-label">{backLabel}</span>
+            </button>
+            <span className="builder-toolbar__divider" aria-hidden="true" />
+          </>
+        )}
 
         <div className="builder-toolbar__title-meta">
           <div className="builder-toolbar__title-row">
@@ -127,25 +130,29 @@ export function BuilderToolbar({
       {/* Right: AI, Import, Code, Ready, Preview */}
       <div className="builder-toolbar__side builder-toolbar__side--end">
         <div className="builder-toolbar__group">
-          <button
-            type="button"
-            className="builder-toolbar__pill builder-toolbar__pill--ai"
-            title="Write or polish with AI Assistant"
-            onClick={onAI}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-            <span className="builder-toolbar__pill-label">AI Assistant</span>
-          </button>
+          {onAI && (
+            <button
+              type="button"
+              className="builder-toolbar__pill builder-toolbar__pill--ai"
+              title="Write or polish with AI Assistant"
+              onClick={onAI}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+              <span className="builder-toolbar__pill-label">AI Assistant</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            className="builder-toolbar__pill"
-            title="Import Template"
-            onClick={onImport}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">file_upload</span>
-            <span className="builder-toolbar__pill-label">Import</span>
-          </button>
+          {onImport && (
+            <button
+              type="button"
+              className="builder-toolbar__pill"
+              title="Import Template"
+              onClick={onImport}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">file_upload</span>
+              <span className="builder-toolbar__pill-label">Import</span>
+            </button>
+          )}
 
           <button
             type="button"

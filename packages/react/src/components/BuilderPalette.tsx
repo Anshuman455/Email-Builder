@@ -1,6 +1,6 @@
 /* ═══ BuilderPalette ═══
  *
- * Left rail matching Growtality:
+ * Left rail palette:
  * Two tabs: Blocks and Structure.
  * Blocks has:
  *  - Layouts: 6 thumbnail cards with span previews
@@ -22,16 +22,23 @@ const ROW_LAYOUTS = [
   { layout: "2:1", label: "Wide + narrow", spans: [2, 1] },
 ];
 
-const BUILTIN_ICONS: Record<string, string> = {
+const BLOCK_ICONS: Record<string, string> = {
   heading: "title",
   text: "notes",
-  image: "image",
+  list: "format_list_bulleted",
   button: "smart_button",
+  image: "image",
+  video: "smart_display",
+  card: "dashboard_customize",
+  social: "share",
+  rating: "star",
+  slot: "view_quilt",
+  "content-slot": "view_quilt",
   divider: "horizontal_rule",
   spacer: "height",
-  social: "share",
+  footer: "vertical_align_bottom",
   html: "code",
-  rating: "star",
+  columns: "view_column",
 };
 
 function PaletteBlock({ block }: { block: { type: string; label: string; icon: string } }) {
@@ -64,6 +71,8 @@ function PaletteBlock({ block }: { block: { type: string; label: string; icon: s
     }
   }
 
+  const isHtml = block.icon && block.icon.trim().startsWith("<");
+
   return (
     <button
       ref={drag.setNode}
@@ -72,8 +81,17 @@ function PaletteBlock({ block }: { block: { type: string; label: string; icon: s
       aria-label={`Add ${block.label} block`}
       onClick={add}
     >
-      <span className="palette-block__icon">
-        <span className="material-symbols-outlined" aria-hidden="true">{block.icon}</span>
+      <span className="palette-block__icon-wrap">
+        {isHtml ? (
+          <span
+            className="palette-block__svg-host"
+            dangerouslySetInnerHTML={{ __html: block.icon }}
+          />
+        ) : (
+          <span className="material-symbols-outlined" aria-hidden="true">
+            {block.icon || BLOCK_ICONS[block.type] || "widgets"}
+          </span>
+        )}
       </span>
       <span className="palette-block__label">{block.label}</span>
     </button>
@@ -94,7 +112,7 @@ export function BuilderPalette({ className }: { className?: string }) {
       blocks: g.blocks.map((def) => ({
         type: def.type,
         label: def.label || def.type,
-        icon: BUILTIN_ICONS[def.type] || "widgets",
+        icon: def.icon || BLOCK_ICONS[def.type] || "widgets",
       })),
     }));
   }, [editor]);
@@ -139,7 +157,7 @@ export function BuilderPalette({ className }: { className?: string }) {
             {/* Layouts Section */}
             <section className="palette-group">
               <div className="palette-group__header">
-                <h3 className="palette-group__title">Layouts</h3>
+                <h3 className="palette-group__title">Row Layouts</h3>
                 <span className="palette-group__count">{ROW_LAYOUTS.length}</span>
               </div>
               <div className="palette-layouts">
@@ -223,7 +241,7 @@ export function BuilderPalette({ className }: { className?: string }) {
                               }}
                             >
                               <span className="material-symbols-outlined" aria-hidden="true">
-                                {BUILTIN_ICONS[b.type] || "widgets"}
+                                {BLOCK_ICONS[b.type] || "widgets"}
                               </span>
                               <span>{editor.blocks.get(b.type)?.label || b.type}</span>
                             </div>

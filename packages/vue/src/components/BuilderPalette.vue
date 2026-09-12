@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* ═══ BuilderPalette ═══
  *
- * Left rail matching Growtality:
+ * Left rail palette:
  * - Two top tabs: Blocks and Structure
  * - Under Blocks:
  *   - Layouts (6 visual cards with column span bars)
@@ -33,16 +33,23 @@ const ROW_LAYOUTS = [
   { layout: "2:1", label: "Wide + narrow", spans: [2, 1] },
 ];
 
-const BUILTIN_ICONS: Record<string, string> = {
+const BLOCK_ICONS: Record<string, string> = {
   heading: "title",
   text: "notes",
-  image: "image",
+  list: "format_list_bulleted",
   button: "smart_button",
+  image: "image",
+  video: "smart_display",
+  card: "dashboard_customize",
+  social: "share",
+  rating: "star",
+  slot: "view_quilt",
+  "content-slot": "view_quilt",
   divider: "horizontal_rule",
   spacer: "height",
-  social: "share",
+  footer: "vertical_align_bottom",
   html: "code",
-  rating: "star",
+  columns: "view_column",
 };
 
 const blockGroups = computed(() => {
@@ -53,7 +60,7 @@ const blockGroups = computed(() => {
     blocks: g.blocks.map((def) => ({
       type: def.type,
       label: def.label || def.type,
-      icon: BUILTIN_ICONS[def.type] || "widgets",
+      icon: def.icon || BLOCK_ICONS[def.type] || "widgets",
     })),
   }));
 });
@@ -124,7 +131,7 @@ function addBlock(type: string) {
         <!-- LAYOUTS Section -->
         <section class="palette-group">
           <div class="palette-group__header">
-            <h3 class="palette-group__title">Layouts</h3>
+            <h3 class="palette-group__title">Row Layouts</h3>
             <span class="palette-group__count">{{ ROW_LAYOUTS.length }}</span>
           </div>
           <div class="palette-layouts">
@@ -169,8 +176,15 @@ function addBlock(type: string) {
               :aria-label="`Add ${b.label} block`"
               @click="addBlock(b.type)"
             >
-              <span class="palette-block__icon">
-                <span class="material-symbols-outlined" aria-hidden="true">{{ b.icon }}</span>
+              <span class="palette-block__icon-wrap">
+                <span
+                  v-if="b.icon && b.icon.trim().startsWith('<')"
+                  class="palette-block__svg-host"
+                  v-html="b.icon"
+                />
+                <span v-else class="material-symbols-outlined" aria-hidden="true">
+                  {{ b.icon || BLOCK_ICONS[b.type] || 'widgets' }}
+                </span>
               </span>
               <span class="palette-block__label">{{ b.label }}</span>
             </button>
@@ -216,7 +230,7 @@ function addBlock(type: string) {
                     @click.stop="editor.select({ kind: 'block', id: b.id })"
                   >
                     <span class="material-symbols-outlined" aria-hidden="true">
-                      {{ BUILTIN_ICONS[b.type] || 'widgets' }}
+                      {{ BLOCK_ICONS[b.type] || 'widgets' }}
                     </span>
                     <span>{{ editor.blocks.get(b.type)?.label || b.type }}</span>
                   </div>

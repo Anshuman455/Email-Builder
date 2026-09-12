@@ -1,12 +1,12 @@
 <script setup lang="ts">
 /* ═══ BuilderToolbar ═══
  *
- * Growtality-style top toolbar:
- * Left: Back button, Title, "EMAIL TEMPLATE" badge, Subtitle, Undo/Redo pill group, Save status
- * Right: AI Assistant, Import, Code, Ready status, Preview
+ * Modern top toolbar:
+ * Left: Back button (optional), Title, "EMAIL TEMPLATE" badge, Subtitle, Undo/Redo pill group, Save status
+ * Right: AI Assistant (optional), Import (optional), Code, Ready status, Preview
  */
 
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 
@@ -20,8 +20,8 @@ const props = withDefaults(
     class?: string;
   }>(),
   {
-    title: "Charcoal Grill",
-    subtitle: "A warm autumn welcome – new menu at {{restaurant.name}}",
+    title: "Monthly Newsletter",
+    subtitle: "A monthly update for our community",
     badgeLabel: "EMAIL TEMPLATE",
     backLabel: "Templates",
   },
@@ -35,6 +35,11 @@ const emit = defineEmits<{
   ai: [];
   back: [];
 }>();
+
+const attrs = useAttrs();
+const hasBack = computed(() => Boolean(props.onBack || attrs.onBack));
+const hasAi = computed(() => Boolean(attrs.onAi));
+const hasImport = computed(() => Boolean(attrs.onImport));
 
 const editor = useEditor();
 const t = useTranslator(editor);
@@ -77,17 +82,19 @@ function handleBack() {
   <header class="builder-toolbar">
     <!-- Left: Back button, Title & Badge, Undo/Redo, Save status -->
     <div class="builder-toolbar__side">
-      <button
-        type="button"
-        class="builder-toolbar__back-btn"
-        :title="`Back to ${backLabel}`"
-        @click="handleBack"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-        <span class="builder-toolbar__back-label">{{ backLabel }}</span>
-      </button>
+      <template v-if="hasBack">
+        <button
+          type="button"
+          class="builder-toolbar__back-btn"
+          :title="`Back to ${backLabel}`"
+          @click="handleBack"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          <span class="builder-toolbar__back-label">{{ backLabel }}</span>
+        </button>
 
-      <span class="builder-toolbar__divider" aria-hidden="true" />
+        <span class="builder-toolbar__divider" aria-hidden="true" />
+      </template>
 
       <div class="builder-toolbar__title-meta">
         <div class="builder-toolbar__title-row">
@@ -141,6 +148,7 @@ function handleBack() {
     <div class="builder-toolbar__side builder-toolbar__side--end">
       <div class="builder-toolbar__group">
         <button
+          v-if="hasAi"
           type="button"
           class="builder-toolbar__pill builder-toolbar__pill--ai"
           title="Write or polish with AI Assistant"
@@ -151,6 +159,7 @@ function handleBack() {
         </button>
 
         <button
+          v-if="hasImport"
           type="button"
           class="builder-toolbar__pill"
           title="Import Template"

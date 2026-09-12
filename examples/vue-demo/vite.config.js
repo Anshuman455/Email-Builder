@@ -10,6 +10,7 @@ export default defineConfig({
       "@email-builder/core": new URL("../../packages/core/src/index.ts", import.meta.url).pathname,
       "@email-builder/engine": new URL("../../packages/engine/src/index.ts", import.meta.url).pathname,
       "@email-builder/vue": new URL("../../packages/vue/src/index.ts", import.meta.url).pathname,
+      "@email-builder/styles": new URL("../../packages/styles/dist/email-builder.css", import.meta.url).pathname,
     },
   },
 });

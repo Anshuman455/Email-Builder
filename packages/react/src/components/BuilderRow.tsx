@@ -1,6 +1,6 @@
 /* ═══ BuilderRow ═══
  *
- * One row on the canvas matching Growtality:
+ * One row on the canvas:
  * Left floating toolbar handle:
  *  - drag_indicator grip
  *  - arrow_upward (move up)

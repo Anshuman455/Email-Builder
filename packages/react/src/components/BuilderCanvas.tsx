@@ -7,6 +7,7 @@
  * 4. Footer with "Add row" and compliance notice
  */
 
+import { useState } from "react";
 import { useEditor, useTranslator } from "../context";
 import { useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
@@ -16,6 +17,21 @@ import { BuilderRow } from "./BuilderRow";
 export interface BuilderCanvasProps {
   className?: string;
 }
+
+const DesktopIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
+const MobileIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="5" y="2" width="14" height="20" rx="2" />
+    <line x1="12" y1="18" x2="12.01" y2="18" />
+  </svg>
+);
 
 function RowSlot({ index }: { index: number }) {
   const editor = useEditor();
@@ -45,10 +61,10 @@ function RowSlot({ index }: { index: number }) {
 export function BuilderCanvas({ className }: BuilderCanvasProps) {
   const editor = useEditor();
   const t = useTranslator();
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const rows = useEditorSelector((state) => state.document.rows);
   const settings = useEditorSelector((state) => state.document.settings);
   const contentWidth = settings.contentWidth || 600;
-  const device = useEditorSelector((state) => state.device);
   const isDragging = useIsDragging();
 
   const targetWidth = device === "mobile" ? 360 : contentWidth;
@@ -87,9 +103,9 @@ export function BuilderCanvas({ className }: BuilderCanvasProps) {
             role="radio"
             aria-checked={device === "desktop"}
             title="Desktop Preview (600px)"
-            onClick={() => editor.setDevice("desktop")}
+            onClick={() => setDevice("desktop")}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">desktop_windows</span>
+            <DesktopIcon />
             <span className="builder-canvas__viewport-label">Desktop</span>
           </button>
           <button
@@ -98,9 +114,9 @@ export function BuilderCanvas({ className }: BuilderCanvasProps) {
             role="radio"
             aria-checked={device === "mobile"}
             title="Mobile Preview (360px)"
-            onClick={() => editor.setDevice("mobile")}
+            onClick={() => setDevice("mobile")}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">smartphone</span>
+            <MobileIcon />
             <span className="builder-canvas__viewport-label">Mobile</span>
           </button>
         </div>

@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const parts = ["tokens.css", "layout.css", "palette.css", "canvas.css", "inspector.css", "fields.css", "overlays.css", "growtality-builder.css"];
+const parts = ["tokens.css", "layout.css", "palette.css", "canvas.css", "inspector.css", "fields.css", "overlays.css", "theme.css"];
 let imports = [];
 let cssParts = [];
 for (const f of parts) {

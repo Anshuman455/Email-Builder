@@ -1,6 +1,6 @@
 /* ═══ BuilderInspector ═══
  *
- * Right rail matching Growtality:
+ * Right rail inspector:
  * When nothing selected:
  *  - Email Settings (Global styles & frame)
  *  - Canvas Quick Tips
