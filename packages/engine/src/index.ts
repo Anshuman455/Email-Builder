@@ -40,3 +40,15 @@ export type { ImportedRow } from "./import";
 export { groupFields } from "./fields";
 export type { FieldRun } from "./fields";
 export { columnCanvasStyle, rowCanvasStyle } from "./canvas";
+export {
+  isRichTextField,
+  readRichTextState,
+  removeLink,
+  restoreSelection,
+  runRichTextCommand,
+  safeLinkHref,
+  selectionIn,
+  setLink,
+  setTextColor,
+} from "./richtext";
+export type { RichTextCommand, RichTextState } from "./richtext";

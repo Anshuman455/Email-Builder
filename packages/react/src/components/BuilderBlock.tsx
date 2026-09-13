@@ -12,13 +12,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Block, Column, MergeField, Row } from "@email-builder/core";
-import type { Editor } from "@email-builder/engine";
+import { isRichTextField, type Editor } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useDraggable, useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { compileBlockPreview } from "../preview";
 import { MentionMenu } from "./MentionMenu";
 import { Glyph } from "./Glyph";
+import { RichTextToolbar } from "./RichTextToolbar";
 
 export interface BuilderBlockProps {
   block: Block;
@@ -188,6 +189,9 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
 
       <div className="eb-block__render" ref={render} dangerouslySetInnerHTML={{ __html: html }} />
 
+      {/* Formatting bar — only for rich-text fields; headings and labels are stored as plain text. */}
+      {editing && isRichTextField(definition, definition?.inlineEditKey) && <RichTextToolbar host={render} />}
+
       {mentionState.open && (
         <MentionMenu
           editor={editor}
@@ -348,7 +352,8 @@ function useInlineEdit({ editor, block, editing, inlineEditKey, host }: InlineEd
     };
 
     const onBlur = (event: FocusEvent) => {
-      if ((event.relatedTarget as HTMLElement)?.closest?.(".eb-mention-menu")) return;
+      /* Focus moving into the merge menu or the formatting bar is still part of this edit. */
+      if ((event.relatedTarget as HTMLElement)?.closest?.(".eb-mention-menu, .eb-rte")) return;
       if (mentionStateRef.current.open) return;
       commit();
     };

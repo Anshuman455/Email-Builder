@@ -19,6 +19,8 @@ import { useDragState, useEditorSelector } from "../composables";
 import { compileBlockPreview } from "../preview";
 import { vDrag, vDrop } from "../directives";
 import MentionMenu from "./MentionMenu.vue";
+import RichTextToolbar from "./RichTextToolbar.vue";
+import { isRichTextField } from "@email-builder/engine";
 import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{ block: Block; row: Row; column: Column; columnIndex: number }>();
@@ -33,6 +35,8 @@ const selected = useEditorSelector(
 );
 const landed = useEditorSelector((state) => state.landedId === props.block.id);
 const editing = useEditorSelector((state) => state.editingBlockId === props.block.id);
+/* The formatting bar only makes sense for rich text; headings and labels are stored as plain text. */
+const richText = computed(() => isRichTextField(definition.value, definition.value?.inlineEditKey));
 const settings = useEditorSelector((state) => state.document.settings);
 
 const dragState = useDragState(editor);
@@ -222,7 +226,8 @@ function startInline() {
   };
 
   const onBlur = (e: FocusEvent) => {
-    if ((e.relatedTarget as HTMLElement)?.closest?.(".eb-mention-menu")) return;
+    /* Focus moving into the merge menu or the formatting bar is still part of this edit. */
+    if ((e.relatedTarget as HTMLElement)?.closest?.(".eb-mention-menu, .eb-rte")) return;
     if (mentionState.value.open) return;
     commit();
   };
@@ -384,6 +389,8 @@ onUnmounted(() => {
     </div>
 
     <div ref="renderEl" class="eb-block__render" v-html="html" />
+
+    <RichTextToolbar v-if="editing && richText" :host="renderEl" />
 
     <MentionMenu
       v-if="mentionState.open"

@@ -5689,3 +5689,121 @@ input[type="color"]::-moz-color-swatch {
   gap: 6px;
   margin-top: 6px;
 }
+
+/* ── Rich-text toolbar ──
+ *
+ * Floats above the block being edited (below it for blocks at the very top of the canvas). Lifted
+ * above the block's own move/delete bar, and styled as a light popover so it reads as a tool for
+ * the text rather than for the block. */
+
+.eb-rte {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: calc(var(--eb-z-chrome) + 10);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--eb-surface-raised);
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius);
+  box-shadow: var(--eb-shadow-2);
+  white-space: nowrap;
+  animation: builder-menu-in var(--eb-duration) var(--eb-ease-out);
+}
+
+.eb-rte--below {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.eb-rte__btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: calc(var(--eb-radius) - 3px);
+  color: var(--eb-text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color var(--eb-duration-fast) var(--eb-ease), color var(--eb-duration-fast) var(--eb-ease);
+}
+
+.eb-rte__btn:hover {
+  background: var(--eb-surface-sunken);
+  color: var(--eb-text);
+}
+
+.eb-rte__btn--active,
+.eb-rte__btn--active:hover {
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+}
+
+.eb-rte__btn:focus-visible {
+  outline: 2px solid var(--eb-accent);
+  outline-offset: 1px;
+}
+
+/* The native colour input covers the icon button invisibly, so clicking the icon opens the picker. */
+.eb-rte__btn input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.eb-rte__sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--eb-border);
+}
+
+.eb-rte__link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.eb-rte__link input {
+  width: 240px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--eb-border);
+  border-radius: calc(var(--eb-radius) - 3px);
+  background: var(--eb-surface);
+  color: var(--eb-text);
+  font-size: var(--eb-text-md);
+}
+
+.eb-rte__link input:focus {
+  outline: none;
+  border-color: var(--eb-accent);
+  box-shadow: 0 0 0 3px var(--eb-accent-ring);
+}
+
+.eb-rte__link input[aria-invalid="true"] {
+  border-color: var(--eb-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--eb-danger) 20%, transparent);
+}
+
+.eb-rte__apply {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: calc(var(--eb-radius) - 3px);
+  background: var(--eb-accent);
+  color: var(--eb-on-accent);
+  font-size: var(--eb-text-sm);
+  font-weight: 600;
+}
+
+.eb-rte__apply:hover {
+  background: var(--eb-accent-hover);
+}

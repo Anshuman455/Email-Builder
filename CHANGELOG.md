@@ -6,6 +6,12 @@ All notable changes to the `@email-builder/*` packages. The five packages are ve
 
 ### Added
 
+- **Rich-text toolbar.** While editing a Text block (or any custom block with a `richtext` field) on
+  the canvas, a formatting bar floats above it: bold, italic, underline, strikethrough, bulleted and
+  numbered lists, links (⌘K; web, `mailto:`, `tel:` or a merge tag), text colour and clear
+  formatting, with the active formatting highlighted. Headings and button labels stay plain text.
+  The logic is exported from the engine (`setLink`, `setTextColor`, `runRichTextCommand`,
+  `readRichTextState`, `safeLinkHref`…) so custom UIs can reuse it.
 - **Image size in px or %.** The Image block's width can be a percentage of the column or a fixed
   pixel value (never wider than the column), and it can have a fixed pixel height — 0 keeps the
   image's proportions; a fixed height crops to fill.
