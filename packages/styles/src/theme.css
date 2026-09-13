@@ -4587,8 +4587,21 @@ select.inspector-input {
   height: 20px;
   margin-top: 1px;
   padding: 0;
-  transition: background .15s cubic-bezier(.4, 0, .2, 1);
+  transition: background-color var(--eb-duration-toggle) var(--eb-ease);
   position: relative;
+}
+
+.inspector-toggle__switch:hover {
+  background: color-mix(in srgb, var(--eb-border-strong) 80%, var(--eb-text));
+}
+
+.inspector-toggle__switch--on:hover {
+  background: color-mix(in srgb, var(--eb-accent) 88%, var(--eb-text));
+}
+
+.inspector-toggle__switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--eb-accent-ring);
 }
 
 .inspector-toggle__switch--on {
@@ -4597,10 +4610,13 @@ select.inspector-input {
 
 .inspector-toggle__thumb {
   background: var(--eb-surface);
-  border-radius: 50%;
+  border-radius: 999px;
+  box-shadow: var(--eb-shadow-1);
   width: 16px;
   height: 16px;
-  transition: transform .15s cubic-bezier(.4, 0, .2, 1);
+  transition:
+    transform var(--eb-duration-toggle) var(--eb-ease-spring),
+    width var(--eb-duration) var(--eb-ease);
   position: absolute;
   top: 2px;
   left: 2px;
@@ -4608,6 +4624,14 @@ select.inspector-input {
 
 .inspector-toggle__switch--on .inspector-toggle__thumb {
   transform: translateX(14px);
+}
+
+.inspector-toggle__switch:active .inspector-toggle__thumb {
+  width: 20px;
+}
+
+.inspector-toggle__switch--on:active .inspector-toggle__thumb {
+  transform: translateX(10px);
 }
 
 .inspector-toggle__body {
@@ -5806,4 +5830,108 @@ input[type="color"]::-moz-color-swatch {
 
 .eb-rte__apply:hover {
   background: var(--eb-accent-hover);
+}
+
+/* ── Image field actions ── */
+
+.eb-image-field__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.eb-image-field__actions .eb-btn {
+  gap: 6px;
+}
+
+/* ── Crop dialog ──
+ *
+ * The image scaled to fit, a crop box drawn in % of it, and everything outside the box dimmed by
+ * the box's own oversized shadow (clipped by the stage). */
+
+.eb-crop {
+  max-width: 860px;
+}
+
+.eb-crop .eb-modal__header .eb-segmented {
+  margin-right: 4px;
+}
+
+.eb-crop__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: var(--eb-surface-sunken);
+}
+
+.eb-crop__stage {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  border-radius: var(--eb-radius-sm);
+  touch-action: none;
+  user-select: none;
+}
+
+.eb-crop__stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  pointer-events: none;
+}
+
+.eb-crop__box {
+  position: absolute;
+  cursor: move;
+  outline: 2px solid var(--eb-surface);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--eb-shadow-color) 55%, transparent);
+}
+
+.eb-crop__box:focus-visible {
+  outline: 2px solid var(--eb-accent);
+}
+
+.eb-crop__handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--eb-accent);
+  border-radius: 50%;
+  background: var(--eb-surface);
+  box-shadow: var(--eb-shadow-1);
+}
+
+.eb-crop__handle--nw { top: -7px; left: -7px; cursor: nwse-resize; }
+.eb-crop__handle--ne { top: -7px; right: -7px; cursor: nesw-resize; }
+.eb-crop__handle--sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+.eb-crop__handle--se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+
+.eb-crop__meta {
+  margin: 0;
+  font-size: var(--eb-text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--eb-text-muted);
+}
+
+/* ── Multi-selection panel ── */
+
+.eb-inspector__multi {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.eb-inspector__multi-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eb-inspector__multi-actions .eb-btn {
+  gap: 6px;
 }

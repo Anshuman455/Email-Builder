@@ -6,13 +6,14 @@
 
 import { Portal } from "./Portal";
 import { useDragState } from "../hooks/useDnd";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { ICONS } from "@email-builder/core";
 import { RowIcon } from "../icons";
 
 export function DragLayer() {
   const drag = useDragState();
   const editor = useEditor();
+  const t = useTranslator();
 
   if (!drag.active || !drag.pointer) return null;
 
@@ -28,6 +29,8 @@ export function DragLayer() {
     /* A block drag carries the instance id, not the type — look the type up in the document. */
     const definition = editor.blocks.get(blockTypeOf(editor, drag.active.blockId) ?? "");
     label = definition?.label ?? "Block";
+    const selected = editor.getSelectedIds();
+    if (selected.length > 1 && selected.includes(drag.active.blockId)) label = `${selected.length} ${t("drag.blocks")}`;
     iconSvg = definition ? ICONS[definition.icon as keyof typeof ICONS] ?? "" : "";
   } else if (drag.active.kind === "palette") {
     const definition = editor.blocks.get(drag.active.blockType);

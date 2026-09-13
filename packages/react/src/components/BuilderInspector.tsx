@@ -25,6 +25,7 @@ import {
 } from "../schemas";
 import { Glyph } from "./Glyph";
 import { groupFields } from "@email-builder/engine";
+import { fontStack } from "@email-builder/core";
 
 const GLOBAL_FONTS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
@@ -92,6 +93,19 @@ export function BuilderInspector({ className }: { className?: string }) {
     return null;
   });
 
+  const selectedIds = useEditorSelector((state) => state.selectedIds);
+  /* Several blocks or rows at once get the shared actions instead of one item's settings. */
+  const multi = selectedIds.length > 1;
+  const [copied, setCopied] = useState(false);
+  const copySelected = () => {
+    const payload = editor.copySelection();
+    if (!payload || !navigator.clipboard) return;
+    void navigator.clipboard.writeText(payload).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
   /* A selection with nothing to show — a column that was removed, a block deleted while selected —
      gets an explanation instead of a blank panel. */
   const showEmpty = !!selectionKind && selectionKind !== "settings" && !selectedBlock && !selectedRow && !selectedColumn;
@@ -133,7 +147,7 @@ export function BuilderInspector({ className }: { className?: string }) {
       )}
 
       {/* Block Header */}
-      {selectionKind === "block" && selectedBlock && (
+      {!multi && selectionKind === "block" && selectedBlock && (
         <header className="builder-inspector__header">
           <div className="builder-inspector__header-title">
             <span className="builder-inspector__header-icon">
@@ -159,7 +173,7 @@ export function BuilderInspector({ className }: { className?: string }) {
       )}
 
       {/* Row Header */}
-      {selectionKind === "row" && selectedRow && (
+      {!multi && selectionKind === "row" && selectedRow && (
         <header className="builder-inspector__header">
           <div className="builder-inspector__header-title">
             <span className="builder-inspector__header-icon">
@@ -178,6 +192,27 @@ export function BuilderInspector({ className }: { className?: string }) {
           >
             <Glyph name="arrow_back" />
             <span>All Settings</span>
+          </button>
+        </header>
+      )}
+
+      {/* Multi-selection Header */}
+      {multi && (
+        <header className="builder-inspector__header">
+          <div className="builder-inspector__header-title">
+            <span className="builder-inspector__header-icon">
+              <Glyph name={selectionKind === "row" ? "table_rows" : "widgets"} />
+            </span>
+            <div>
+              <span className="builder-inspector__title-main">
+                {selectedIds.length} {selectionKind === "row" ? t("selection.rows") : t("selection.blocks")}
+              </span>
+              <span className="builder-inspector__title-sub">{t("selection.sub")}</span>
+            </div>
+          </div>
+          <button type="button" className="builder-inspector__nav-btn" title={t("inspector.back")} onClick={deselect}>
+            <Glyph name="arrow_back" />
+            <span>{t("inspector.allSettings")}</span>
           </button>
         </header>
       )}
@@ -242,12 +277,12 @@ export function BuilderInspector({ className }: { className?: string }) {
                     style={{ width: "100%", height: 36, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 10px", fontSize: 13, background: "var(--eb-surface)" }}
                     onChange={(e) => updateSettings({ fontFamily: e.target.value })}
                   >
-                    {GLOBAL_FONTS.map((f) => (
+                    {[...editor.fonts.map((font) => ({ value: fontStack(font), label: font.label })), ...GLOBAL_FONTS].map((f) => (
                       <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
                   </select>
                   <span style={{ display: "block", fontSize: 11, color: "var(--eb-text-subtle)", marginTop: 4 }}>
-                    Web-safe fonts only — custom fonts do not render in Outlook.
+                    Brand fonts show in most inboxes; Outlook uses their web-safe fallback.
                   </span>
                 </div>
 
@@ -457,7 +492,7 @@ export function BuilderInspector({ className }: { className?: string }) {
         )}
 
         {/* ─── Selected Block ─── */}
-        {selectionKind === "block" && selectedBlock && (
+        {!multi && selectionKind === "block" && selectedBlock && (
           <>
             {blockSchema.map((group) => (
               <details key={group.title} className="eb-group" open>
@@ -502,7 +537,7 @@ export function BuilderInspector({ className }: { className?: string }) {
         )}
 
         {/* ─── Selected Row ─── */}
-        {selectionKind === "row" && selectedRow && (
+        {!multi && selectionKind === "row" && selectedRow && (
           <>
             {ROW_GROUPS.map((group) => (
               <details key={group.title} className="eb-group" open={!group.collapsed}>
@@ -539,6 +574,27 @@ export function BuilderInspector({ className }: { className?: string }) {
             ))}
           </>
         )}
+        {/* ─── Multi-selection ─── */}
+        {multi && (
+          <div className="eb-inspector__multi">
+            <div className="eb-inspector__multi-actions">
+              <button type="button" className="eb-btn eb-btn--outline" onClick={() => editor.duplicateSelected()}>
+                <Glyph name="add_box" />
+                {t("selection.duplicate")}
+              </button>
+              <button type="button" className="eb-btn eb-btn--outline" onClick={copySelected}>
+                <Glyph name={copied ? "check" : "content_copy"} />
+                {copied ? t("selection.copied") : t("selection.copy")}
+              </button>
+              <button type="button" className="eb-btn eb-btn--danger" onClick={() => editor.removeSelected()}>
+                <Glyph name="delete" />
+                {t("selection.delete")}
+              </button>
+            </div>
+            <p className="eb-field__help">{t("selection.hint")}</p>
+          </div>
+        )}
+
         {/* ─── Selected Column ─── */}
         {selectionKind === "column" && selectedColumn && (
           <>

@@ -10,6 +10,8 @@
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════ */
 
+import type { FontDefinition } from "@email-builder/core";
+import { reidentifyBlock, reidentifyRow } from "@email-builder/core";
 import { htmlToRows } from "./import";
 import { sanitizeHtml } from "@email-builder/core";
 import {
@@ -69,9 +71,21 @@ export type Selection =
   | { kind: "settings" }
   | null;
 
+/** A block or row that can join a multi-selection. */
+export interface SelectableTarget {
+  kind: "block" | "row";
+  id: string;
+}
+
+/** Marks clipboard text written by `copySelection`, so paste can tell it from anything else. */
+export const CLIPBOARD_FORMAT = "email-builder/clipboard";
+
 export interface EditorState {
   document: EmailDocument;
   selection: Selection;
+  /** Every block or row in the selection, in document order — more than one after ⌘/Ctrl- or
+   *  Shift-click. Same kind as `selection`, which is the item clicked last. */
+  selectedIds: string[];
   /** Flashes whatever was just added, duplicated or moved — after a drop the eye is on the
    *  pointer, not on the row the block landed in. */
   landedId: string | null;
@@ -104,6 +118,8 @@ export interface EditorOptions {
   adapter?: Adapter;
   /** `"email"` offers every block; `"layout"` offers the content slot and hides composition. */
   mode?: string;
+  /** Registered brand fonts — offered in font pickers and linked in the compiled email. */
+  fonts?: FontDefinition[];
   save?: (document: EmailDocument) => Promise<void> | void;
   autosave?: { debounceMs?: number; maxWaitMs?: number; enabled?: boolean };
   historyLimit?: number;
@@ -124,6 +140,8 @@ export interface Editor {
   getSelection(): Selection;
   getSelectedBlock(): Block | null;
   getSelectedRow(): Row | null;
+  /** Brand fonts registered with the editor. */
+  readonly fonts: FontDefinition[];
   getSchema(): FieldGroup[];
   /** Apply a drop exactly as a pointer drop would — for custom drag UIs, keyboard flows and tests. */
   drop(event: DropEvent): void;
@@ -144,6 +162,22 @@ export interface Editor {
 
   /* Selection */
   select(selection: Selection): void;
+  /** Add or remove a block or row from the selection (⌘/Ctrl-click). Another kind starts over. */
+  toggleSelection(target: SelectableTarget): void;
+  /** Select everything between the current item and this one, in document order (Shift-click). */
+  selectRange(target: SelectableTarget): void;
+  /** Ids of the selected blocks or rows, in document order. */
+  getSelectedIds(): string[];
+  /** Delete every selected block or row, as one undo step. Returns false when nothing was deletable. */
+  removeSelected(): boolean;
+  /** Duplicate every selected block or row next to its original, as one undo step. */
+  duplicateSelected(): void;
+  /** The selection as clipboard text (JSON), or null when nothing copyable is selected. */
+  copySelection(): string | null;
+  /** Paste clipboard text from `copySelection` — from this email or another — after the selection.
+   *  Other text is ignored; `html` from elsewhere is imported as blocks. Returns true when something
+   *  was added. */
+  paste(text: string, html?: string): boolean;
   selectNext(direction: 1 | -1): void;
   beginInlineEdit(blockId: string): void;
   endInlineEdit(): void;
@@ -195,6 +229,7 @@ export function createEditor(options: EditorOptions): Editor {
   const state = createStore<EditorState>({
     document: initial,
     selection: null,
+    selectedIds: [],
     landedId: null,
     canUndo: false,
     canRedo: false,
@@ -288,6 +323,22 @@ export function createEditor(options: EditorOptions): Editor {
 
     /* An existing block moving. */
     if (source.kind === "block") {
+      /* Dragging one of several selected blocks moves all of them, in document order. */
+      const group = currentSelection();
+      if (group?.kind === "block" && group.ids.length > 1 && group.ids.includes(source.blockId)) {
+        if (target.kind === "block" && group.ids.includes(target.blockId)) return;
+        const moving = group.ids.map((id) => findBlock(doc, id)?.block).filter((block): block is Block => !!block);
+        const without = group.ids.reduce((working, id) => removeBlockOp(working, id), doc);
+        const landing = resolveBlockLanding(without, target, edge);
+        if (!landing) return;
+        let next = landing.doc;
+        moving.forEach((block, offset) => {
+          next = insertBlockOp(next, block, landing.columnId, landing.index + offset);
+        });
+        commit(next, "block:move");
+        land(source.blockId);
+        return;
+      }
       const landing = resolveBlockLanding(doc, target, edge);
       if (!landing) return;
       commit(moveBlockOp(landing.doc, source.blockId, landing.columnId, landing.index), "block:move");
@@ -366,10 +417,51 @@ export function createEditor(options: EditorOptions): Editor {
 
   /* ── Selection ── */
 
+  /* ── Multi-selection & clipboard helpers ── */
+
+  function orderedIds(doc: EmailDocument, kind: "block" | "row"): string[] {
+    if (kind === "row") return doc.rows.map((row) => row.id);
+    const ids: string[] = [];
+    for (const row of doc.rows) for (const column of row.columns) for (const block of column.blocks) ids.push(block.id);
+    return ids;
+  }
+
+  /** The selection as a set of existing ids, in document order — or null for no block/row selection. */
+  function currentSelection(): { kind: "block" | "row"; ids: string[] } | null {
+    const { selection, selectedIds } = state.get();
+    if (!selection || (selection.kind !== "block" && selection.kind !== "row")) return null;
+    const wanted = new Set([...selectedIds, selection.id]);
+    const ids = orderedIds(history.present, selection.kind).filter((id) => wanted.has(id));
+    return ids.length ? { kind: selection.kind, ids } : null;
+  }
+
+  function selectMany(kind: "block" | "row", ids: string[], primary: string) {
+    state.set((current) => ({ ...current, selection: { kind, id: primary } as Selection, selectedIds: ids, editingBlockId: null }));
+    events.emit("select", state.get().selection);
+  }
+
+  function readClipboard(text: string): { kind: "block" | "row"; items: unknown[] } | null {
+    if (!text || !text.includes(CLIPBOARD_FORMAT)) return null;
+    try {
+      const data = JSON.parse(text);
+      if (data?.format !== CLIPBOARD_FORMAT || (data.kind !== "block" && data.kind !== "row") || !Array.isArray(data.items)) return null;
+      return { kind: data.kind, items: data.items };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Content from another email may predate keys this version's blocks expect. */
+  function withDefaults(block: Block): Block {
+    const defaults = blocks.defaultsFor(block.type);
+    return defaults ? { ...block, content: { ...defaults.content, ...block.content }, style: { ...defaults.style, ...block.style } } : block;
+  }
+
   function select(selection: Selection) {
     state.set((current) => ({
       ...current,
       selection,
+      selectedIds: selection && (selection.kind === "block" || selection.kind === "row") ? [selection.id] : [],
       editingBlockId: selection?.kind === "block" && current.editingBlockId === selection.id ? current.editingBlockId : null,
     }));
     events.emit("select", selection);
@@ -443,10 +535,148 @@ export function createEditor(options: EditorOptions): Editor {
       return added;
     },
 
-    compile: (compileOptions) => compile(history.present, { blocks, merge }, compileOptions),
+    fonts: options.fonts ?? [],
+
+    compile: (compileOptions) => compile(history.present, { blocks, merge, fonts: options.fonts }, compileOptions),
     preflight: () => preflightDoc(history.present, { blocks, merge }),
 
     select,
+
+    toggleSelection(target) {
+      const current = currentSelection();
+      if (!current || current.kind !== target.kind) return select(target as Selection);
+      const next = current.ids.includes(target.id) ? current.ids.filter((id) => id !== target.id) : [...current.ids, target.id];
+      const ordered = orderedIds(history.present, target.kind).filter((id) => next.includes(id));
+      if (!ordered.length) return select(null);
+      selectMany(target.kind, ordered, ordered.includes(target.id) ? target.id : ordered[ordered.length - 1]!);
+    },
+
+    selectRange(target) {
+      const current = currentSelection();
+      const anchor = state.get().selection;
+      if (!current || !anchor || current.kind !== target.kind) return select(target as Selection);
+      const order = orderedIds(history.present, target.kind);
+      const from = order.indexOf((anchor as { id: string }).id);
+      const to = order.indexOf(target.id);
+      if (from === -1 || to === -1) return select(target as Selection);
+      selectMany(target.kind, order.slice(Math.min(from, to), Math.max(from, to) + 1), (anchor as { id: string }).id);
+    },
+
+    getSelectedIds: () => currentSelection()?.ids ?? [],
+
+    removeSelected() {
+      const current = currentSelection();
+      if (!current) return false;
+      const doc = current.ids.reduce((working, id) => (current.kind === "block" ? removeBlockOp(working, id) : removeRowOp(working, id)), history.present);
+      commit(doc, `${current.kind}:remove`);
+      select(null);
+      return true;
+    },
+
+    duplicateSelected() {
+      const current = currentSelection();
+      if (!current) return;
+      let doc = history.present;
+      const copies: string[] = [];
+      for (const id of current.ids) {
+        if (current.kind === "block") {
+          const result = duplicateBlockOp(doc, id);
+          doc = result.doc;
+          if (result.block) copies.push(result.block.id);
+        } else {
+          const result = duplicateRowOp(doc, id);
+          doc = result.doc;
+          if (result.row) copies.push(result.row.id);
+        }
+      }
+      if (!copies.length) return;
+      commit(doc, `${current.kind}:duplicate`);
+      const ordered = orderedIds(doc, current.kind).filter((id) => copies.includes(id));
+      selectMany(current.kind, ordered, ordered[ordered.length - 1]!);
+      land(ordered[ordered.length - 1] ?? null);
+    },
+
+    copySelection() {
+      const current = currentSelection();
+      if (!current) return null;
+      const doc = history.present;
+      const items =
+        current.kind === "block"
+          ? current.ids.map((id) => findBlock(doc, id)?.block).filter(Boolean)
+          : current.ids.map((id) => doc.rows.find((row) => row.id === id)).filter(Boolean);
+      if (!items.length) return null;
+      return JSON.stringify({ format: CLIPBOARD_FORMAT, version: 1, kind: current.kind, items });
+    },
+
+    paste(text, html) {
+      const payload = readClipboard(text);
+      if (!payload) return html && html.trim() ? editor.importHtml(html).length > 0 : false;
+
+      let doc = history.present;
+      const current = currentSelection();
+      const selection = state.get().selection;
+
+      if (payload.kind === "block") {
+        const pasted = (payload.items as Block[])
+          .filter((block) => block && typeof block.type === "string" && blocks.get(block.type))
+          .map((block) => withDefaults(reidentifyBlock(block)));
+        if (!pasted.length) return false;
+
+        let columnId: string | null = null;
+        let index = 0;
+        if (current?.kind === "block") {
+          const last = findBlock(doc, current.ids[current.ids.length - 1]!);
+          if (last) {
+            columnId = last.column.id;
+            index = last.blockIndex + 1;
+          }
+        } else if (selection?.kind === "column") {
+          const column = findColumn(doc, selection.id);
+          if (column) {
+            columnId = column.column.id;
+            index = column.column.blocks.length;
+          }
+        }
+        if (!columnId) {
+          const at = current?.kind === "row" ? doc.rows.findIndex((row) => row.id === current.ids[current.ids.length - 1]) + 1 : doc.rows.length;
+          const { doc: withRow, row } = addRowOp(doc, [1], at);
+          doc = withRow;
+          columnId = row.columns[0]!.id;
+        }
+        pasted.forEach((block, offset) => {
+          doc = insertBlockOp(doc, block, columnId!, index + offset);
+        });
+        commit(doc, "block:add");
+        const ids = pasted.map((block) => block.id);
+        selectMany("block", ids, ids[ids.length - 1]!);
+        land(ids[ids.length - 1]!);
+        return true;
+      }
+
+      const rows = (payload.items as Row[])
+        .filter((row) => row && Array.isArray(row.columns))
+        .map((row) =>
+          reidentifyRow({
+            ...row,
+            columns: row.columns.map((column) => ({ ...column, blocks: (column.blocks ?? []).filter((block) => block && blocks.get(block.type)).map(withDefaults) })),
+          }),
+        );
+      if (!rows.length) return false;
+      let at = doc.rows.length;
+      if (current?.kind === "row") at = doc.rows.findIndex((row) => row.id === current.ids[current.ids.length - 1]) + 1;
+      else if (current?.kind === "block") {
+        const last = findBlock(doc, current.ids[current.ids.length - 1]!);
+        if (last) at = last.rowIndex + 1;
+      }
+      rows.forEach((row, offset) => {
+        doc = insertRowOp(doc, row, at + offset);
+      });
+      commit(doc, "row:add");
+      const ids = rows.map((row) => row.id);
+      selectMany("row", ids, ids[ids.length - 1]!);
+      land(ids[ids.length - 1]!);
+      return true;
+    },
 
     /** Tab-order traversal of every block, so the inspector is reachable without a pointer. */
     selectNext(direction) {
@@ -463,7 +693,7 @@ export function createEditor(options: EditorOptions): Editor {
     beginInlineEdit(blockId) {
       const definition = blocks.get(findBlock(history.present, blockId)?.block.type ?? "");
       if (!definition?.inlineEditKey) return;
-      state.set((current) => ({ ...current, selection: { kind: "block", id: blockId }, editingBlockId: blockId }));
+      state.set((current) => ({ ...current, selection: { kind: "block", id: blockId }, selectedIds: [blockId], editingBlockId: blockId }));
     },
 
     endInlineEdit() {

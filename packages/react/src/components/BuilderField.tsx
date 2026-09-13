@@ -7,7 +7,7 @@
  * spec, and nothing here invents one. */
 
 import { useId, useRef, type ReactNode } from "react";
-import { FONT_STACKS, type Border, type FieldOption, type Padding } from "@email-builder/core";
+import { type Border, type FieldOption, type Padding } from "@email-builder/core";
 import { useEditor, useTranslator } from "../context";
 import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon } from "../icons";
 import { asBoolean, asNumber, asString, type BuilderFieldProps, type CustomWidgetProps } from "../types";
@@ -19,6 +19,7 @@ import { MergeTrigger } from "./fields/MergeMenu";
 import { PaddingControl } from "./fields/PaddingField";
 import { RecordControl } from "./fields/RecordField";
 import { RichTextControl } from "./fields/RichTextField";
+import { fontOptions } from "@email-builder/engine";
 
 const ALIGN_ICONS = {
   left: AlignLeftIcon,
@@ -252,7 +253,7 @@ function Control({ field, value, onChange, block, id, label, control }: ControlP
           value={asString(value)}
           onChange={(event) => onChange(event.target.value)}
         >
-          {FONT_STACKS.map((stack) => (
+          {fontOptions(editor.fonts).map((stack) => (
             <option key={stack.value} value={stack.value}>
               {stack.label}
             </option>

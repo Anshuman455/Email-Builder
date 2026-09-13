@@ -9,6 +9,9 @@ import { computed, ref } from "vue";
 import { useEditor, useTranslator } from "../../context";
 import { UI_ICONS } from "../../icons";
 import EbIcon from "../EbIcon.vue";
+import EbGlyph from "../EbGlyph.vue";
+import ImageCropDialog from "../ImageCropDialog.vue";
+import { blobToDataUrl } from "@email-builder/engine";
 
 const props = defineProps<{ value: string; label?: string; contextId: string; fieldKey: string }>();
 const emit = defineEmits<{ change: [value: string] }>();
@@ -19,6 +22,7 @@ const t = useTranslator(editor);
 const file = ref<HTMLInputElement | null>(null);
 const over = ref(false);
 const uploading = ref(false);
+const cropping = ref(false);
 
 const assets = computed(() => editor.adapter.assets);
 const accept = computed(() => assets.value?.accept ?? "image/*");
@@ -52,6 +56,20 @@ async function send(selected: File | undefined | null) {
   }
 }
 
+async function browse() {
+  const adapter = assets.value;
+  if (!adapter?.browse) return;
+  const asset = await adapter.browse({ blockId: props.contextId, field: props.fieldKey });
+  if (asset) emit("change", asset.url);
+}
+
+/* A cropped image is a new file: upload it like any other, or embed it when there is no adapter. */
+async function useCropped(cropped: File) {
+  if (assets.value) await send(cropped);
+  else emit("change", await blobToDataUrl(cropped));
+  cropping.value = false;
+}
+
 function onDrop(event: DragEvent) {
   over.value = false;
   void send(event.dataTransfer?.files?.[0]);
@@ -82,12 +100,25 @@ function onDrop(event: DragEvent) {
       <div v-if="uploading" class="eb-image-field__progress" :style="{ width: '100%' }" />
     </div>
 
-    <div v-if="props.value" class="eb-image-field__actions">
-      <button type="button" class="eb-btn" @click="choose">{{ t("field.replaceImage") }}</button>
-      <button type="button" class="eb-btn eb-btn--danger" @click="emit('change', '')">
+    <div class="eb-image-field__actions">
+      <button v-if="assets?.browse" type="button" class="eb-btn" @click="browse">
+        <EbGlyph name="photo_library" />
+        {{ t("image.browse") }}
+      </button>
+      <button v-if="assets" type="button" class="eb-btn" @click="file?.click()">
+        <EbGlyph name="file_upload" />
+        {{ props.value ? t("field.replaceImage") : t("image.upload") }}
+      </button>
+      <button v-if="props.value" type="button" class="eb-btn" @click="cropping = true">
+        <EbGlyph name="crop" />
+        {{ t("image.crop") }}
+      </button>
+      <button v-if="props.value" type="button" class="eb-btn eb-btn--danger" @click="emit('change', '')">
         {{ t("field.removeImage") }}
       </button>
     </div>
+
+    <ImageCropDialog v-if="cropping && props.value" :src="props.value" @cancel="cropping = false" @apply="useCropped" />
 
     <input
       type="text"

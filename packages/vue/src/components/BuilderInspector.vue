@@ -21,10 +21,12 @@ import { useEditorSelector } from "../composables";
 import { rowGroups, columnGroups, LAYOUT_KEY, layoutValue, parseLayout } from "../schemas";
 import BuilderField from "./BuilderField.vue";
 import EbGlyph from "./EbGlyph.vue";
+import { fontStack } from "@email-builder/core";
 
 const props = defineProps<{ class?: string }>();
 
 const editor = useEditor();
+const brandFonts = computed(() => editor.fonts.map((font) => ({ value: fontStack(font), label: font.label })));
 const t = useTranslator(editor);
 
 const selection = useEditorSelector((state) => state.selection);
@@ -82,6 +84,20 @@ function rowChange(key: string, value: unknown) {
   if (!row) return;
   if (key === LAYOUT_KEY) editor.setRowLayout(row.id, parseLayout(value));
   else editor.updateRowStyle(row.id, { [key]: value });
+}
+
+/* ─── Multi-selection ─── */
+const selectedIds = useEditorSelector((state) => state.selectedIds);
+/* Several blocks or rows at once get the shared actions instead of one item's settings. */
+const multi = computed(() => selectedIds.value.length > 1);
+const copied = ref(false);
+function copySelected() {
+  const payload = editor.copySelection();
+  if (!payload || !navigator.clipboard) return;
+  void navigator.clipboard.writeText(payload).then(() => {
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1500);
+  });
 }
 
 /* ─── Column panel ─── */
@@ -179,6 +195,24 @@ function deselect() {
     </header>
 
     <!-- Block Header -->
+    <!-- Multi-selection Header -->
+    <header v-else-if="multi" class="builder-inspector__header">
+      <div class="builder-inspector__header-title">
+        <span class="builder-inspector__header-icon">
+          <EbGlyph :name="selectionKind === 'row' ? 'table_rows' : 'widgets'" />
+        </span>
+        <div>
+          <span class="builder-inspector__title-main">
+            {{ selectedIds.length }} {{ selectionKind === "row" ? t("selection.rows") : t("selection.blocks") }}
+          </span>
+          <span class="builder-inspector__title-sub">{{ t("selection.sub") }}</span>
+        </div>
+      </div>
+      <button type="button" class="builder-inspector__nav-btn" :title="t('inspector.back')" @click="deselect">
+        <EbGlyph name="arrow_back" />
+        <span>{{ t("inspector.allSettings") }}</span>
+      </button>
+    </header>
     <header v-else-if="selectionKind === 'block' && selectedBlock" class="builder-inspector__header">
       <div class="builder-inspector__header-title">
         <span class="builder-inspector__header-icon">
@@ -281,10 +315,10 @@ function deselect() {
                 style="width: 100%; height: 36px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 10px; font-size: 13px; background: var(--eb-surface);"
                 @change="updateSettings({ fontFamily: ($event.target as HTMLSelectElement).value })"
               >
-                <option v-for="f in GLOBAL_FONTS" :key="f.value" :value="f.value">{{ f.label }}</option>
+                <option v-for="f in [...brandFonts, ...GLOBAL_FONTS]" :key="f.value" :value="f.value">{{ f.label }}</option>
               </select>
               <span style="display: block; font-size: 11px; color: var(--eb-text-subtle); margin-top: 4px;">
-                Web-safe fonts only — custom fonts do not render in Outlook.
+                Brand fonts show in most inboxes; Outlook uses their web-safe fallback.
               </span>
             </div>
 
@@ -491,6 +525,25 @@ function deselect() {
       </template>
 
       <!-- ─── Selected Block ─── -->
+      <!-- ─── Multi-selection ─── -->
+      <div v-else-if="multi" class="eb-inspector__multi">
+        <div class="eb-inspector__multi-actions">
+          <button type="button" class="eb-btn eb-btn--outline" @click="editor.duplicateSelected()">
+            <EbGlyph name="add_box" />
+            {{ t("selection.duplicate") }}
+          </button>
+          <button type="button" class="eb-btn eb-btn--outline" @click="copySelected">
+            <EbGlyph :name="copied ? 'check' : 'content_copy'" />
+            {{ copied ? t("selection.copied") : t("selection.copy") }}
+          </button>
+          <button type="button" class="eb-btn eb-btn--danger" @click="editor.removeSelected()">
+            <EbGlyph name="delete" />
+            {{ t("selection.delete") }}
+          </button>
+        </div>
+        <p class="eb-field__help">{{ t("selection.hint") }}</p>
+      </div>
+
       <template v-else-if="selectionKind === 'block' && selectedBlock">
         <details
           v-for="group in blockSchema"

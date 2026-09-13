@@ -6,13 +6,14 @@
 
 import { computed } from "vue";
 import { ICONS } from "@email-builder/core";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useDragState } from "../composables";
 import { UI_ICONS, SOURCE_ICONS } from "../icons";
 import EbIcon from "./EbIcon.vue";
 import EbPortal from "./EbPortal.vue";
 
 const editor = useEditor();
+const t = useTranslator(editor);
 const drag = useDragState(editor);
 
 /* A block drag carries the instance id, not the type — the ghost needs the type's label and icon. */
@@ -47,7 +48,11 @@ const ghostStyle = computed(() => {
 const ghostLabel = computed(() => {
   const a = active.value;
   if (!a) return "";
-  if (a.kind === "block") return editor.blocks.get(blockTypeOf(a.blockId) ?? "")?.label ?? "Block";
+  if (a.kind === "block") {
+    const selected = editor.getSelectedIds();
+    if (selected.length > 1 && selected.includes(a.blockId)) return `${selected.length} ${t("drag.blocks")}`;
+    return editor.blocks.get(blockTypeOf(a.blockId) ?? "")?.label ?? "Block";
+  }
   if (a.kind === "palette") return editor.blocks.get(a.blockType)?.label ?? a.blockType;
   if (a.kind === "row") return "Row";
   if (a.kind === "palette-row") return a.label ? `Row (${a.label})` : "Row";

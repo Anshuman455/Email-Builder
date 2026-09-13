@@ -2,7 +2,7 @@
 
 All notable changes to the `@email-builder/*` packages. The five packages are versioned together.
 
-## Unreleased
+## 0.3.0
 
 ### Added
 
@@ -15,6 +15,22 @@ All notable changes to the `@email-builder/*` packages. The five packages are ve
 - **Image size in px or %.** The Image block's width can be a percentage of the column or a fixed
   pixel value (never wider than the column), and it can have a fixed pixel height — 0 keeps the
   image's proportions; a fixed height crops to fill.
+- **Mobile overrides.** Text, Heading, List, Button and Image blocks have a **Mobile** group: a
+  different font size, alignment and padding on screens up to 600px wide. Exported as a media query
+  in the email, and shown in the canvas's Mobile view.
+- **Brand fonts.** Pass `fonts` (`{ label, family, fallback, url? }[]`) to list your web fonts first
+  in every font picker. The editor loads them, and the exported email links only the fonts it uses,
+  with the web-safe fallback for inboxes such as Outlook that ignore web fonts.
+- **Image tools.** The image field can crop (free, square, 4:3 or 16:9) and replace or remove the
+  image. A **Browse library** button appears when the adapter provides `assets.browse`. A
+  fixed-height image has a focal point that chooses which part stays in view.
+- **Multi-select, copy and paste.** ⌘/Ctrl-click adds or removes a block or row from the selection,
+  and Shift-click selects a range, on the canvas or in the structure panel. ⌘D duplicates the
+  selection, Delete removes it, and dragging any selected block moves them all. ⌘C, ⌘X and ⌘V copy,
+  cut and paste blocks or rows through the system clipboard, including into another email; HTML
+  pasted from elsewhere is imported as blocks. The settings panel offers Duplicate, Copy and Delete
+  for the selection. In the engine these are `toggleSelection`, `selectRange`, `removeSelected`,
+  `duplicateSelected`, `copySelection` and `paste`.
 
 ### Changed
 
@@ -24,12 +40,17 @@ All notable changes to the `@email-builder/*` packages. The five packages are ve
 - **Typography layout.** Size | Weight and Line height | Letter spacing sit side by side; Font and
   Colour are full width, with even spacing between fields.
 - **Round colour swatches** in every colour field.
+- **Animated switches.** Every toggle slides with a slight overshoot, stretches while pressed, and
+  darkens on hover. Tune it with `--eb-duration-toggle` and `--eb-ease-spring`.
 - **Structure panel redesign.** Rows are cards with a column count, multi-column rows list their
   columns, and blocks sit on an indented outline. Every item is a button, and the current selection
   is highlighted.
 
 ### Fixed
 
+- **Toggles no longer scroll the page.** On a long settings panel, switching a toggle (such as
+  "Different padding on mobile") could scroll the whole page and leave an empty band under the
+  editor.
 - **Space, Enter and Shift+Enter now type into text and headings.** The drag engine cancelled those
   keys whenever they reached a drag handle, including keys typed into a block being edited.
 - **Keyboard dragging from a grip works.** The keypress that started the drag also ended it.

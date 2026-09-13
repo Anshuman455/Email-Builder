@@ -2,7 +2,7 @@ import type { Border, PreflightIssue } from "../types";
 import { defineBlock } from "../registry";
 import { padding } from "../document/defaults";
 import { ICONS } from "./icons";
-import { FONT_STACKS, WEIGHT_OPTIONS, blockShellStyles, hideClass, typographyFields, visibilityGroup } from "./common";
+import { FONT_STACKS, WEIGHT_OPTIONS, blockShellStyles, hideClass, typographyFields, mobileDefaults, mobileGroup, visibilityGroup } from "./common";
 
 /* ────────────────────────────── Text ────────────────────────────── */
 
@@ -31,6 +31,7 @@ export const textBlock = defineBlock({
     lineHeight: 1.6,
     letterSpacing: 0,
     hideOnMobile: false,
+    ...mobileDefaults(),
     hideOnDesktop: false,
   }),
 
@@ -38,6 +39,7 @@ export const textBlock = defineBlock({
     { title: "Content", target: "content", fields: [{ kind: "richtext", key: "html", label: "Text", mergeable: true }] },
     { title: "Typography", target: "style", fields: [{ kind: "align", key: "align", label: "Alignment" }, ...typographyFields()] },
     { title: "Spacing", target: "style", fields: [{ kind: "padding", key: "padding", label: "Padding" }, { kind: "color", key: "backgroundColor", label: "Background", allowTransparent: true }] },
+    mobileGroup({ typography: true }),
     visibilityGroup(),
   ],
 
@@ -98,6 +100,7 @@ export const headingBlock = defineBlock({
     lineHeight: 1.25,
     letterSpacing: -0.2,
     hideOnMobile: false,
+    ...mobileDefaults(),
     hideOnDesktop: false,
   }),
 
@@ -121,6 +124,7 @@ export const headingBlock = defineBlock({
     },
     { title: "Typography", target: "style", fields: [{ kind: "align", key: "align", label: "Alignment" }, ...typographyFields()] },
     { title: "Spacing", target: "style", fields: [{ kind: "padding", key: "padding", label: "Padding" }, { kind: "color", key: "backgroundColor", label: "Background", allowTransparent: true }] },
+    mobileGroup({ typography: true }),
     visibilityGroup(),
   ],
 
@@ -174,6 +178,7 @@ export const listBlock = defineBlock({
     markerColor: "",
     itemGap: 6,
     hideOnMobile: false,
+    ...mobileDefaults(),
     hideOnDesktop: false,
   }),
 
@@ -216,6 +221,7 @@ export const listBlock = defineBlock({
       ],
     },
     { title: "Spacing", target: "style", fields: [{ kind: "padding", key: "padding", label: "Padding" }, { kind: "color", key: "backgroundColor", label: "Background", allowTransparent: true }] },
+    mobileGroup({ typography: true }),
     visibilityGroup(),
   ],
 

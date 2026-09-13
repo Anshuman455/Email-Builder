@@ -40,7 +40,7 @@ The editor fills its container, so give the container a height.
 ## Props and events
 
 Props match [`@email-builder/react`](https://www.npmjs.com/package/@email-builder/react): `document`,
-`blocks`, `exclude-blocks`, `merge-fields`, `merge-syntax`, `adapter`, `autosave`, `theme`,
+`blocks`, `exclude-blocks`, `fonts`, `merge-fields`, `merge-syntax`, `adapter`, `autosave`, `theme`,
 `show-palette`, `show-inspector`, `show-toolbar`, `toolbar-actions`, `on-save`, `on-change`, `on-ready`.
 
 Events: `save`, `change`, `ready`, `select`.

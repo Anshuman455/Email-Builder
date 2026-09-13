@@ -22,6 +22,7 @@ import MentionMenu from "./MentionMenu.vue";
 import RichTextToolbar from "./RichTextToolbar.vue";
 import { isRichTextField } from "@email-builder/engine";
 import EbGlyph from "./EbGlyph.vue";
+import { selectFromClick } from "@email-builder/engine";
 
 const props = defineProps<{ block: Block; row: Row; column: Column; columnIndex: number }>();
 
@@ -31,13 +32,15 @@ const t = useTranslator(editor);
 const definition = computed(() => editor.blocks.get(props.block.type));
 
 const selected = useEditorSelector(
-  (state) => state.selection?.kind === "block" && state.selection.id === props.block.id,
+  (state) => state.selection?.kind === "block" && (state.selection.id === props.block.id || state.selectedIds.includes(props.block.id)),
 );
 const landed = useEditorSelector((state) => state.landedId === props.block.id);
 const editing = useEditorSelector((state) => state.editingBlockId === props.block.id);
 /* The formatting bar only makes sense for rich text; headings and labels are stored as plain text. */
 const richText = computed(() => isRichTextField(definition.value, definition.value?.inlineEditKey));
 const settings = useEditorSelector((state) => state.document.settings);
+/* Re-render when the canvas switches Desktop/Mobile: mobile overrides change the preview. */
+const device = useEditorSelector((state) => state.device);
 
 const dragState = useDragState(editor);
 const isOver = computed(() => {
@@ -66,6 +69,7 @@ const html = computed(() => {
   const columnWidth = widths[props.columnIndex] ?? settings.value.contentWidth;
   const padding = props.column.style.padding;
   const width = Math.max(0, columnWidth - (padding?.left ?? 0) - (padding?.right ?? 0));
+  void device.value;
   return compileBlockPreview({ editor, block: props.block, settings: settings.value, width });
 });
 
@@ -100,8 +104,9 @@ const mentionState = ref<{
   textNode: null,
 });
 
-function onClickBlock() {
-  editor.select({ kind: "block", id: props.block.id });
+function onClickBlock(event: MouseEvent) {
+  /* ⌘/Ctrl-click and Shift-click build a multi-selection instead of starting to edit. */
+  if (selectFromClick(editor, event, { kind: "block", id: props.block.id })) return;
   if (definition.value?.inlineEditKey) {
     editor.beginInlineEdit(props.block.id);
   }

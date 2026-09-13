@@ -13,6 +13,7 @@ import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { useDraggable } from "../hooks/useDnd";
 import { Glyph } from "./Glyph";
+import { selectFromClick } from "@email-builder/engine";
 
 const ROW_LAYOUTS = [
   { layout: "1", label: "Full width", spans: [1] },
@@ -145,6 +146,7 @@ export function BuilderPalette({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState<"blocks" | "structure">("blocks");
   const document = useEditorSelector((state) => state.document);
   const selection = useEditorSelector((state) => state.selection);
+  const selectedIds = useEditorSelector((state) => state.selectedIds);
 
   const blockGroups = useMemo(() => {
     const rawGroups = editor.blocks.groups();
@@ -229,7 +231,7 @@ export function BuilderPalette({ className }: { className?: string }) {
           <div className="structure-tree">
             {document.rows.length === 0 && <p className="structure-tree__empty">{t("structure.empty")}</p>}
             {document.rows.map((row, rIndex) => {
-              const rowSelected = selection?.kind === "row" && selection.id === row.id;
+              const rowSelected = selection?.kind === "row" && (selection.id === row.id || selectedIds.includes(row.id));
               const single = row.columns.length === 1;
               return (
                 <div key={row.id} className={`structure-row${rowSelected ? " structure-row--selected" : ""}`}>
@@ -237,7 +239,7 @@ export function BuilderPalette({ className }: { className?: string }) {
                     type="button"
                     className="structure-row__header"
                     aria-pressed={rowSelected}
-                    onClick={() => editor.select({ kind: "row", id: row.id })}
+                    onClick={(event) => selectFromClick(editor, event, { kind: "row", id: row.id })}
                   >
                     <Glyph name="table_rows" />
                     <span className="structure-row__title">
@@ -274,14 +276,14 @@ export function BuilderPalette({ className }: { className?: string }) {
                               <span className="structure-block structure-block--empty">{t("structure.emptyColumn")}</span>
                             ) : (
                               col.blocks.map((b) => {
-                                const blockSelected = selection?.kind === "block" && selection.id === b.id;
+                                const blockSelected = selection?.kind === "block" && (selection.id === b.id || selectedIds.includes(b.id));
                                 return (
                                   <button
                                     key={b.id}
                                     type="button"
                                     className={`structure-block${blockSelected ? " structure-block--selected" : ""}`}
                                     aria-pressed={blockSelected}
-                                    onClick={() => editor.select({ kind: "block", id: b.id })}
+                                    onClick={(event) => selectFromClick(editor, event, { kind: "block", id: b.id })}
                                   >
                                     <Glyph name={BLOCK_ICONS[b.type] || "widgets"} />
                                     <span className="structure-block__label">{editor.blocks.get(b.type)?.label || b.type}</span>

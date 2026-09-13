@@ -16,6 +16,8 @@ import { BuilderInspector } from "./BuilderInspector";
 import { BuilderPreview } from "./BuilderPreview";
 import { BuilderCodeView } from "./BuilderCodeView";
 import { DragLayer } from "./DragLayer";
+import type { FontDefinition } from "@email-builder/core";
+import { handleEditorCopy, handleEditorPaste, loadFonts } from "@email-builder/engine";
 
 export interface EmailBuilderProps {
   document?: unknown;
@@ -23,6 +25,8 @@ export interface EmailBuilderProps {
   excludeBlocks?: string[];
   mergeFields?: MergeField[];
   mergeSyntax?: MergeSyntax;
+  /** Brand and web fonts, each with a web-safe fallback for clients that can't load them. */
+  fonts?: FontDefinition[];
   adapter?: Adapter;
   mode?: string;
   theme?: BuilderTheme;
@@ -47,6 +51,7 @@ export function EmailBuilder({
   excludeBlocks,
   mergeFields,
   mergeSyntax,
+  fonts,
   adapter,
   mode,
   theme = "light",
@@ -66,6 +71,7 @@ export function EmailBuilder({
     excludeBlocks,
     mergeFields,
     mergeSyntax,
+    fonts,
     adapter,
     mode,
     onSave,
@@ -75,6 +81,9 @@ export function EmailBuilder({
   });
 
   const [overlay, setOverlay] = useState<OverlayKind>(null);
+
+  /* Load brand fonts into the page so the canvas shows them. */
+  useEffect(() => loadFonts(editor.fonts), [editor]);
   const rootRef = useRef<HTMLDivElement>(null);
 
   /* ── Keyboard shortcuts ── */
@@ -104,15 +113,10 @@ export function EmailBuilder({
         editor.save();
       } else if (mod && event.key === "d") {
         event.preventDefault();
-        const sel = editor.getSelection();
-        if (sel?.kind === "block") editor.duplicateBlock(sel.id);
-        else if (sel?.kind === "row") editor.duplicateRow(sel.id);
+        editor.duplicateSelected();
       } else if (event.key === "Delete" || event.key === "Backspace") {
-        const sel = editor.getSelection();
-        if (!sel) return;
-        event.preventDefault();
-        if (sel.kind === "block") editor.removeBlock(sel.id);
-        else if (sel.kind === "row") editor.removeRow(sel.id);
+        /* Every selected block or row, not just the last one clicked. */
+        if (editor.removeSelected()) event.preventDefault();
       } else if (event.key === "Escape") {
         event.preventDefault();
         editor.endInlineEdit();
@@ -129,8 +133,21 @@ export function EmailBuilder({
       }
     };
 
+    /* Copy, cut and paste blocks or rows — between emails too — through the system clipboard. */
+    const onCopy = (event: ClipboardEvent) => handleEditorCopy(editor, event);
+    const onCut = (event: ClipboardEvent) => handleEditorCopy(editor, event, true);
+    const onPaste = (event: ClipboardEvent) => handleEditorPaste(editor, event);
+
     root.addEventListener("keydown", onKeyDown);
-    return () => root.removeEventListener("keydown", onKeyDown);
+    root.addEventListener("copy", onCopy);
+    root.addEventListener("cut", onCut);
+    root.addEventListener("paste", onPaste);
+    return () => {
+      root.removeEventListener("keydown", onKeyDown);
+      root.removeEventListener("copy", onCopy);
+      root.removeEventListener("cut", onCut);
+      root.removeEventListener("paste", onPaste);
+    };
   }, [editor]);
 
   const rootClasses = ["email-builder", "eb-root", className ?? ""].filter(Boolean).join(" ");

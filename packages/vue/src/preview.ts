@@ -9,6 +9,7 @@
 import {
   escapeAttr,
   escapeHtml,
+  applyMobileStyle,
   safeUrl,
   sanitizeBlockContent,
   sanitizeHtml,
@@ -52,6 +53,8 @@ export function compileBlockPreview({ editor, block, settings, width }: BlockPre
 
   /* Rich-text fields are cleaned before rendering, exactly as core's compiler does. */
   context.content = sanitizeBlockContent(definition, context.content);
+  /* In the canvas's Mobile view, show the block with its mobile overrides applied. */
+  if (editor.state.get().device === "mobile") context.style = applyMobileStyle(context.style);
 
   try {
     const html = (definition.preview ?? definition.render)(context) ?? "";

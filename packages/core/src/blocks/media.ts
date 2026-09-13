@@ -3,13 +3,19 @@ import { defineBlock } from "../registry";
 import { padding } from "../document/defaults";
 import { safeImageUrl } from "../util/html";
 import { ICONS } from "./icons";
-import { blockShellStyles, hideClass, visibilityGroup } from "./common";
+import { blockShellStyles, hideClass, mobileDefaults, mobileGroup, visibilityGroup } from "./common";
 
 /* ────────────────────────────── Image ──────────────────────────────
  *
  * Two things make an image survive an inbox: a hard pixel `width` attribute (Outlook ignores CSS
  * width) and `display:block` (Gmail adds a baseline gap without it).
  * ─────────────────────────────────────────────────────────────────────── */
+
+/** A focal-point percentage, defaulting to the centre. */
+const focal = (value: unknown): number => {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, Math.round(n))) : 50;
+};
 
 export const imageBlock = defineBlock({
   type: "image",
@@ -34,9 +40,13 @@ export const imageBlock = defineBlock({
     widthPx: 300,
     /** Fixed height in px. 0 keeps the image's own proportions. */
     height: 0,
+    /** Focal point, in % from the left and top — the part kept in view when a fixed height crops. */
+    focalX: 50,
+    focalY: 50,
     borderRadius: 0,
     border: { width: 0, style: "none" as Border["style"], color: "#e2e8f0" },
     hideOnMobile: false,
+    ...mobileDefaults(),
     hideOnDesktop: false,
   }),
 
@@ -67,11 +77,14 @@ export const imageBlock = defineBlock({
         { kind: "range", key: "widthPercent", label: "Width", min: 10, max: 100, step: 1, suffix: "%", when: (_v, b) => b.style.widthUnit !== "px" },
         { kind: "number", key: "widthPx", label: "Width", min: 10, max: 1200, suffix: "px", when: (_v, b) => b.style.widthUnit === "px", help: "Never wider than the column." },
         { kind: "number", key: "height", label: "Height", min: 0, max: 2000, suffix: "px", help: "0 keeps the image's proportions. A fixed height crops the image to fill." },
+        { kind: "range", key: "focalX", label: "Focal point — left to right", min: 0, max: 100, step: 1, suffix: "%", when: (_v, b) => Number(b.style.height) > 0 },
+        { kind: "range", key: "focalY", label: "Focal point — top to bottom", min: 0, max: 100, step: 1, suffix: "%", when: (_v, b) => Number(b.style.height) > 0 },
         { kind: "number", key: "borderRadius", label: "Corner radius", min: 0, max: 60, suffix: "px" },
         { kind: "border", key: "border", label: "Border" },
       ],
     },
     { title: "Spacing", target: "style", fields: [{ kind: "padding", key: "padding", label: "Padding" }, { kind: "color", key: "backgroundColor", label: "Background", allowTransparent: true }] },
+    mobileGroup({ typography: false }),
     visibilityGroup(),
   ],
 
@@ -95,6 +108,7 @@ export const imageBlock = defineBlock({
       maxWidth: "100%",
       height: height ? `${height}px` : "auto",
       objectFit: height ? "cover" : undefined,
+      objectPosition: height ? `${focal(style.focalX)}% ${focal(style.focalY)}%` : undefined,
       display: "block",
       border: "0",
       outline: "none",

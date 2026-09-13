@@ -103,7 +103,10 @@ export function BuilderCanvas({ className, showToolbar = true, onPreview, onCode
       {showToolbar && (
         <BuilderToolbar
           device={device}
-          onDeviceChange={setDevice}
+          onDeviceChange={(next) => {
+            setDevice(next);
+            editor.setDevice(next); // blocks read it to preview their mobile overrides
+          }}
           width={targetWidth}
           actions={toolbarActions}
           onPreview={onPreview}

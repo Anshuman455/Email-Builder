@@ -123,6 +123,7 @@ export { formatHtml } from "./util/format";
  * control composes the pieces above instead.
  * ─────────────────────────────────────────────────────────────────────── */
 
+import { normalizeFonts, type FontDefinition } from "./fonts";
 import { createBlockRegistry } from "./registry";
 import { createMergeRegistry, COMMON_FIELDS } from "./merge/registry";
 import { BLOCK_GROUP_ORDER, BUILTIN_BLOCKS } from "./blocks";
@@ -140,6 +141,8 @@ export interface SetupOptions {
   replaceMergeFields?: MergeField[];
   mergeSyntax?: MergeSyntax;
   loadMergeFields?: () => Promise<MergeField[]>;
+  /** Brand and web fonts, offered in font pickers alongside the web-safe stacks. */
+  fonts?: FontDefinition[];
 }
 
 export function setup(options: SetupOptions = {}) {
@@ -156,5 +159,7 @@ export function setup(options: SetupOptions = {}) {
     groupOrder: ["Contact", "Account", "Sender", "Organisation", "System"],
   });
 
-  return { blocks, merge };
+  return { blocks, merge, fonts: normalizeFonts(options.fonts) };
 }
+export { fontStack, normalizeFonts, fontHeadHtml } from "./fonts";
+export type { FontDefinition } from "./fonts";

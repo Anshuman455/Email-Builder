@@ -1,6 +1,6 @@
 {
   "name": "@email-builder/react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React bindings for the email builder. Thin view layer over @email-builder/engine — no document logic, no drag logic.",
   "keywords": [
     "email",
@@ -49,8 +49,8 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@email-builder/core": "0.2.1",
-    "@email-builder/engine": "0.2.1"
+    "@email-builder/core": "0.3.0",
+    "@email-builder/engine": "0.3.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.2",

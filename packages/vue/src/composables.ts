@@ -28,6 +28,7 @@ import {
   type Store,
 } from "@email-builder/engine";
 import { provideEditor, useEditor } from "./context";
+import type { FontDefinition } from "@email-builder/core";
 
 /* ─── Store mirroring ─── */
 
@@ -115,6 +116,8 @@ export interface UseEmailBuilderOptions {
   excludeBlocks?: string[];
   mergeFields?: MergeField[];
   mergeSyntax?: MergeSyntax;
+  /** Brand and web fonts, each with a web-safe fallback. */
+  fonts?: FontDefinition[];
   adapter?: Adapter;
   mode?: string;
   autosave?: { debounceMs?: number; maxWaitMs?: number; enabled?: boolean };
@@ -132,17 +135,19 @@ export interface UseEmailBuilderOptions {
  * renders the Builder* components directly.
  */
 export function useEmailBuilder(options: UseEmailBuilderOptions = {}): Editor {
-  const { blocks, merge } = setup({
+  const { blocks, merge, fonts } = setup({
     blocks: options.blocks,
     excludeBlocks: options.excludeBlocks,
     mergeFields: options.mergeFields,
     mergeSyntax: options.mergeSyntax,
+    fonts: options.fonts,
   });
 
   const editor = createEditor({
     document: options.document,
     blocks,
     merge,
+    fonts,
     adapter: options.adapter,
     mode: options.mode,
     autosave: options.autosave,

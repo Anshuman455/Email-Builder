@@ -39,4 +39,9 @@ describe("image block size", () => {
     expect(tag).toMatch(/height:\s*150px/);
     expect(tag).toMatch(/object-fit:\s*cover/);
   });
+
+  it("keeps the focal point in view when a fixed height crops the image", () => {
+    expect(imageTag({ height: 150, focalX: 20, focalY: 80 })).toMatch(/object-position:\s*20% 80%/);
+    expect(imageTag({ focalX: 20, focalY: 80 })).not.toMatch(/object-position/);
+  });
 });

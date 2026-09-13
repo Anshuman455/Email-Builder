@@ -7,7 +7,7 @@
  * Emits: save, change, ready, select. */
 
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
-import type { BlockDefinition, MergeField, MergeSyntax } from "@email-builder/core";
+import type { BlockDefinition, FontDefinition, MergeField, MergeSyntax } from "@email-builder/core";
 import type { Adapter, ToolbarAction } from "@email-builder/engine";
 import { provideEditor, provideTheme } from "../context";
 import { useEmailBuilder } from "../composables";
@@ -18,6 +18,7 @@ import BuilderPreview from "./BuilderPreview.vue";
 import BuilderCodeView from "./BuilderCodeView.vue";
 import DragLayer from "./DragLayer.vue";
 import { isTypingTarget } from "../util";
+import { handleEditorCopy, handleEditorPaste, loadFonts } from "@email-builder/engine";
 
 const props = withDefaults(
   defineProps<{
@@ -26,6 +27,8 @@ const props = withDefaults(
     excludeBlocks?: string[];
     mergeFields?: MergeField[];
     mergeSyntax?: MergeSyntax;
+    /** Brand and web fonts, each with a web-safe fallback for clients that can't load them. */
+    fonts?: FontDefinition[];
     adapter?: Adapter;
     mode?: string;
     theme?: "light" | "dark" | "auto";
@@ -62,6 +65,7 @@ const editor = useEmailBuilder({
   excludeBlocks: props.excludeBlocks,
   mergeFields: props.mergeFields,
   mergeSyntax: props.mergeSyntax,
+  fonts: props.fonts,
   adapter: props.adapter,
   mode: props.mode,
   autosave: props.autosave,
@@ -90,15 +94,10 @@ function onKeyDown(event: KeyboardEvent) {
     event.preventDefault(); editor.save();
   } else if (mod && event.key === "d") {
     event.preventDefault();
-    const sel = editor.getSelection();
-    if (sel?.kind === "block") editor.duplicateBlock(sel.id);
-    else if (sel?.kind === "row") editor.duplicateRow(sel.id);
+    editor.duplicateSelected();
   } else if (event.key === "Delete" || event.key === "Backspace") {
-    const sel = editor.getSelection();
-    if (!sel) return;
-    event.preventDefault();
-    if (sel.kind === "block") editor.removeBlock(sel.id);
-    else if (sel.kind === "row") editor.removeRow(sel.id);
+    /* Every selected block or row, not just the last one clicked. */
+    if (editor.removeSelected()) event.preventDefault();
   } else if (event.key === "Escape") {
     event.preventDefault();
     editor.endInlineEdit();
@@ -112,8 +111,27 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-onMounted(() => rootRef.value?.addEventListener("keydown", onKeyDown));
-onUnmounted(() => rootRef.value?.removeEventListener("keydown", onKeyDown));
+/* Copy, cut and paste blocks or rows — between emails too — through the system clipboard. */
+const onCopy = (event: ClipboardEvent) => handleEditorCopy(editor, event);
+const onCut = (event: ClipboardEvent) => handleEditorCopy(editor, event, true);
+const onPaste = (event: ClipboardEvent) => handleEditorPaste(editor, event);
+
+onMounted(() => {
+  const root = rootRef.value;
+  root?.addEventListener("keydown", onKeyDown);
+  root?.addEventListener("copy", onCopy);
+  root?.addEventListener("cut", onCut);
+  root?.addEventListener("paste", onPaste);
+  /* Load brand fonts into the page so the canvas shows them. */
+  loadFonts(editor.fonts);
+});
+onUnmounted(() => {
+  const root = rootRef.value;
+  root?.removeEventListener("keydown", onKeyDown);
+  root?.removeEventListener("copy", onCopy);
+  root?.removeEventListener("cut", onCut);
+  root?.removeEventListener("paste", onPaste);
+});
 
 type Overlay = "preview" | "code" | null;
 const overlay = ref<Overlay>(null);

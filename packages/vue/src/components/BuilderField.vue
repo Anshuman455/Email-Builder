@@ -33,6 +33,7 @@ import MergeMenu from "./fields/MergeMenu.vue";
 import PaddingControl from "./fields/PaddingControl.vue";
 import RecordControl from "./fields/RecordControl.vue";
 import { sanitizeHtml } from "@email-builder/core";
+import { fontOptions } from "@email-builder/engine";
 
 const props = defineProps<{ field: Field; value: unknown; block?: Block | null }>();
 const emit = defineEmits<{
@@ -42,6 +43,8 @@ const emit = defineEmits<{
 }>();
 
 const editor = useEditor();
+/* Registered brand fonts first, then the web-safe stacks. */
+const fontChoices = computed(() => fontOptions(editor.fonts));
 const t = useTranslator(editor);
 
 /* Per-instance id, so a <label for> reaches its own control and not the same key in another
@@ -263,7 +266,7 @@ function insertToken(token: string) {
     <!-- font -->
     <select v-else-if="kind === 'font'" :id="uid" class="eb-select" :value="text" @change="change(($event.target as HTMLSelectElement).value)">
       <option value="">{{ t("field.themeFont", "Theme font") }}</option>
-      <option v-for="stack in FONT_STACKS" :key="stack.value" :value="stack.value">{{ stack.label }}</option>
+      <option v-for="stack in fontChoices" :key="stack.value" :value="stack.value">{{ stack.label }}</option>
     </select>
 
     <!-- segmented -->

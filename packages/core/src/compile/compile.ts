@@ -12,6 +12,8 @@
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════ */
 
+import { fontHeadHtml, type FontDefinition } from "../fonts";
+import { hasMobileOverrides, mobileClass, mobileRules } from "../blocks/common";
 import type {
   Block,
   BlockDefinition,
@@ -33,6 +35,8 @@ import { toPlainText } from "./plain-text";
 export interface CompilerDeps {
   blocks: BlockRegistry;
   merge?: MergeRegistry;
+  /** Registered brand fonts; the ones the email uses get their stylesheet linked. */
+  fonts?: FontDefinition[];
 }
 
 /* ────────────────────────────── Render context ────────────────────────────── */
@@ -95,7 +99,25 @@ function renderBlock(
   /* Author-supplied markup is sanitised here rather than inside the block, so the policy is one
      decision and a host cannot opt out of it by registering its own block. */
   if (block.type === "html") html = sanitizeHtml(html);
+  if (html && hasMobileOverrides(block.style)) html = addClass(html, mobileClass(block.id));
   return html;
+}
+
+/** Add a class to the first <table> of a block's HTML — the hook its mobile rules target. */
+function addClass(html: string, className: string): string {
+  return html.replace(/<table\b([^>]*)>/i, (tag, attrs: string) =>
+    /\sclass="/i.test(attrs) ? tag.replace(/\sclass="([^"]*)"/i, (_m, existing: string) => ` class="${existing} ${className}"`) : `<table${attrs} class="${className}">`,
+  );
+}
+
+/** One media query carrying every block's mobile overrides, or nothing when no block has any. */
+function mobileStyles(doc: EmailDocument, breakpoint = 600): string {
+  const rules: string[] = [];
+  for (const row of doc.rows) for (const column of row.columns) for (const block of column.blocks) {
+    const css = mobileRules(block);
+    if (css) rules.push(css);
+  }
+  return rules.length ? `<style type="text/css">@media only screen and (max-width:${breakpoint}px){${rules.join("")}}</style>` : "";
 }
 
 /* ────────────────────────────── Rows ────────────────────────────── */
@@ -213,7 +235,7 @@ export function compile(doc: EmailDocument, deps: CompilerDeps, options: Compile
     : wrapDocument(body, doc.settings, {
         title: (doc.meta as any)?.subject ?? "",
         preheader: (doc.meta as any)?.preheader ?? "",
-        headExtra: options.headExtra,
+        headExtra: [fontHeadHtml(doc, deps.fonts), mobileStyles(doc), options.headExtra].filter(Boolean).join(""),
       });
 
   const merge = deps.merge;

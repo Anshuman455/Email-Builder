@@ -15,6 +15,7 @@ import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 import { vDrag } from "../directives";
 import EbGlyph from "./EbGlyph.vue";
+import { selectFromClick } from "@email-builder/engine";
 
 const props = defineProps<{ class?: string }>();
 
@@ -23,6 +24,11 @@ const t = useTranslator(editor);
 
 const document = useEditorSelector((state) => state.document);
 const selection = useEditorSelector((state) => state.selection);
+const selectedIds = useEditorSelector((state) => state.selectedIds);
+
+function isSelected(kind: "row" | "block", id: string) {
+  return selection.value?.kind === kind && (selection.value.id === id || selectedIds.value.includes(id));
+}
 
 const activeTab = ref<"blocks" | "structure">("blocks");
 
@@ -206,13 +212,13 @@ function addBlock(type: string) {
           <div
             v-for="(row, rIndex) in document.rows"
             :key="row.id"
-            :class="['structure-row', selection?.kind === 'row' && selection.id === row.id ? 'structure-row--selected' : '']"
+            :class="['structure-row', isSelected('row', row.id) ? 'structure-row--selected' : '']"
           >
             <button
               type="button"
               class="structure-row__header"
-              :aria-pressed="selection?.kind === 'row' && selection.id === row.id"
-              @click="editor.select({ kind: 'row', id: row.id })"
+              :aria-pressed="isSelected('row', row.id)"
+              @click="selectFromClick(editor, $event, { kind: 'row', id: row.id })"
             >
               <EbGlyph name="table_rows" />
               <span class="structure-row__title">{{ t("structure.row") }} {{ rIndex + 1 }}</span>
@@ -243,9 +249,9 @@ function addBlock(type: string) {
                     v-else
                     :key="b.id"
                     type="button"
-                    :class="['structure-block', selection?.kind === 'block' && selection.id === b.id ? 'structure-block--selected' : '']"
-                    :aria-pressed="selection?.kind === 'block' && selection.id === b.id"
-                    @click="editor.select({ kind: 'block', id: b.id })"
+                    :class="['structure-block', isSelected('block', b.id) ? 'structure-block--selected' : '']"
+                    :aria-pressed="isSelected('block', b.id)"
+                    @click="selectFromClick(editor, $event, { kind: 'block', id: b.id })"
                   >
                     <EbGlyph :name="BLOCK_ICONS[b.type] || 'widgets'" />
                     <span class="structure-block__label">{{ editor.blocks.get(b.type)?.label || b.type }}</span>

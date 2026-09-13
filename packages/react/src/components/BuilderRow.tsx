@@ -18,6 +18,7 @@ import { useDraggable, useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { BuilderColumn } from "./BuilderColumn";
 import { Glyph } from "./Glyph";
+import { selectFromClick } from "@email-builder/engine";
 
 export interface BuilderRowProps {
   row: Row;
@@ -30,7 +31,7 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
 
   const totalRows = useEditorSelector((state) => state.document.rows.length);
   const selected = useEditorSelector(
-    (state) => state.selection?.kind === "row" && state.selection.id === row.id,
+    (state) => state.selection?.kind === "row" && (state.selection.id === row.id || state.selectedIds.includes(row.id)),
   );
   const landed = useEditorSelector((state) => state.landedId === row.id);
 
@@ -70,7 +71,7 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
       className={classes}
       onClick={(event) => {
         event.stopPropagation();
-        editor.select({ kind: "row", id: row.id });
+        selectFromClick(editor, event, { kind: "row", id: row.id });
       }}
     >
       {drop.isOver && (

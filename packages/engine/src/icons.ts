@@ -32,6 +32,8 @@ export const EDITOR_ICONS = {
   format_list_numbered: svg(`<path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5h1.5v4M4 9h3"/><path d="M4 14.6a1.5 1.5 0 0 1 3 .1c0 1-3 2.1-3 3.3h3"/>`),
   format_color_text: svg(`<path d="m6.5 15 5.5-11 5.5 11M8.6 11h6.8"/><path d="M4 20h16"/>`),
   format_clear: svg(`<path d="M6 5h12M12 5 9.5 15"/><path d="m14 14 6 6M20 14l-6 6"/>`),
+  crop: svg(`<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>`),
+  photo_library: svg(`<rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><path d="m9 14 3-3 2 2 2-2 3 3"/>`),
   check: svg(`<path d="m5 13 4 4L19 7"/>`),
   close: svg(`<path d="M6 6l12 12M18 6 6 18"/>`),
   file_download: svg(`<path d="M12 5v11"/><path d="m8 12 4 4 4-4"/><path d="M5 19h14"/>`),

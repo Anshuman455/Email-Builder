@@ -52,3 +52,10 @@ export {
   setTextColor,
 } from "./richtext";
 export type { RichTextCommand, RichTextState } from "./richtext";
+export { fontOptions, loadFonts } from "./fonts";
+export type { FontOption } from "./fonts";
+export { aspectCrop, blobToDataUrl, cropImage, CropError, FULL_CROP, moveCrop, resizeCrop } from "./imagetools";
+export type { CropHandle, CropRect } from "./imagetools";
+export { CLIPBOARD_FORMAT } from "./editor";
+export type { SelectableTarget } from "./editor";
+export { handleEditorCopy, handleEditorPaste, isEditableTarget, selectFromClick } from "./interactions";

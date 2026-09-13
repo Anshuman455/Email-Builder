@@ -20,6 +20,7 @@ import { compileBlockPreview } from "../preview";
 import { MentionMenu } from "./MentionMenu";
 import { Glyph } from "./Glyph";
 import { RichTextToolbar } from "./RichTextToolbar";
+import { selectFromClick } from "@email-builder/engine";
 
 export interface BuilderBlockProps {
   block: Block;
@@ -34,7 +35,7 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
   const definition = editor.blocks.get(block.type);
 
   const selected = useEditorSelector(
-    (state) => state.selection?.kind === "block" && state.selection.id === block.id,
+    (state) => state.selection?.kind === "block" && (state.selection.id === block.id || state.selectedIds.includes(block.id)),
   );
   const landed = useEditorSelector((state) => state.landedId === block.id);
   const editing = useEditorSelector((state) => state.editingBlockId === block.id);
@@ -64,9 +65,11 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
     [drop.setNode, drag.setNode],
   );
 
+  /* Re-render when the canvas switches Desktop/Mobile: mobile overrides change the preview. */
+  const device = useEditorSelector((state) => state.device);
   const html = useMemo(
     () => compileBlockPreview({ editor, block, row, columnIndex }),
-    [editor, block, row, columnIndex, settings],
+    [editor, block, row, columnIndex, settings, device],
   );
 
   const render = useRef<HTMLDivElement | null>(null);
@@ -95,10 +98,9 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
       aria-selected={selected}
       onClick={(event) => {
         event.stopPropagation();
-        editor.select({ kind: "block", id: block.id });
-        if (definition?.inlineEditKey) {
-          editor.beginInlineEdit(block.id);
-        }
+        /* ⌘/Ctrl-click and Shift-click build a multi-selection instead of starting to edit. */
+        if (selectFromClick(editor, event, { kind: "block", id: block.id })) return;
+        if (definition?.inlineEditKey) editor.beginInlineEdit(block.id);
       }}
       onDoubleClick={() => {
         if (definition?.inlineEditKey) editor.beginInlineEdit(block.id);

@@ -191,6 +191,10 @@
 /* ── Toggle ── */
 
 .eb-toggle {
+  /* Anchors the hidden checkbox inside the panel's scroll area. Without it the checkbox is placed
+     against an ancestor outside the sidebar, so a long settings panel made the whole page scroll
+     and clicking a toggle jumped the page to it. */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -206,24 +210,39 @@
   height: 20px;
   border-radius: 999px;
   background: var(--eb-border-strong);
-  transition: background var(--eb-duration-fast) var(--eb-ease);
+  transition:
+    background-color var(--eb-duration-toggle) var(--eb-ease),
+    box-shadow var(--eb-duration) var(--eb-ease);
 }
 
+/* The thumb slides with a small overshoot and stretches toward its destination while pressed,
+   so the switch answers the press before the value changes. */
 .eb-toggle__thumb {
   position: absolute;
   top: 2px;
   left: 2px;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--eb-surface);
   box-shadow: var(--eb-shadow-1);
-  transition: transform var(--eb-duration-fast) var(--eb-ease-out);
+  transition:
+    transform var(--eb-duration-toggle) var(--eb-ease-spring),
+    width var(--eb-duration) var(--eb-ease);
+  will-change: transform;
 }
 
-.eb-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.eb-toggle:hover .eb-toggle__track { background: color-mix(in srgb, var(--eb-border-strong) 80%, var(--eb-text)); }
+.eb-toggle:active .eb-toggle__thumb { width: 20px; }
+
+.eb-toggle input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
 .eb-toggle input:checked + .eb-toggle__track { background: var(--eb-accent); }
+.eb-toggle:hover input:checked + .eb-toggle__track { background: color-mix(in srgb, var(--eb-accent) 88%, var(--eb-text)); }
 .eb-toggle input:checked + .eb-toggle__track .eb-toggle__thumb { transform: translateX(14px); }
+/* Pressed while on: the wider thumb grows leftward, keeping its right edge in place. */
+.eb-toggle:active input:checked + .eb-toggle__track .eb-toggle__thumb { transform: translateX(10px); }
+.eb-toggle:has(input:disabled) { cursor: not-allowed; opacity: 0.5; }
+.eb-toggle:has(input:disabled) .eb-toggle__thumb { width: 16px; }
 .eb-toggle input:focus-visible + .eb-toggle__track { box-shadow: 0 0 0 3px var(--eb-accent-ring); }
 
 /* ── Padding ──

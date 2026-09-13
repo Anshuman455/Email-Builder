@@ -12,6 +12,7 @@ import {
   columnWidths,
   escapeAttr,
   escapeHtml,
+  applyMobileStyle,
   safeUrl,
   sanitizeBlockContent,
   sanitizeHtml,
@@ -42,6 +43,8 @@ export function compileBlockPreview({ editor, block, row, columnIndex }: BlockPr
   /* Same policy as core's compiler: rich-text fields are cleaned before rendering, and an HTML
      block's output is cleaned after. This canvas is a live DOM in the host's origin. */
   context.content = sanitizeBlockContent(definition, context.content);
+  /* In the canvas's Mobile view, show the block with its mobile overrides applied. */
+  if (editor.state.get().device === "mobile") context.style = applyMobileStyle(context.style);
   const render = definition.preview ?? definition.render;
 
   try {

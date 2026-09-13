@@ -46,6 +46,7 @@ The editor fills its container, so give the container a height.
 | `blocks` | `BlockDefinition[]` | Your custom blocks, added to the built-in ones. |
 | `excludeBlocks` | `string[]` | Built-in block types to hide. |
 | `mergeFields` / `mergeSyntax` | | Personalisation fields such as `{{user.firstName}}`. |
+| `fonts` | `{ label, family, fallback, url? }[]` | Brand web fonts, listed first in font pickers. `fallback` is used where web fonts don't load (Outlook). |
 | `adapter` | `Adapter` | Image uploads, record lookups and label overrides/translations. |
 | `autosave` | `{ debounceMs?, maxWaitMs?, enabled? }` | |
 | `theme` | `"light" \| "dark" \| "auto"` | Default `"light"`. |

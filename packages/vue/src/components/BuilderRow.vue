@@ -19,6 +19,7 @@ import { vDrag, vDrop } from "../directives";
 import BuilderColumn from "./BuilderColumn.vue";
 import EbGlyph from "./EbGlyph.vue";
 import { rowCanvasStyle } from "@email-builder/engine";
+import { selectFromClick } from "@email-builder/engine";
 
 const props = defineProps<{ row: Row; index: number }>();
 
@@ -27,7 +28,7 @@ const editor = useEditor();
 const t = useTranslator(editor);
 const totalRows = useEditorSelector((state) => state.document.rows.length);
 const selected = useEditorSelector(
-  (state) => state.selection?.kind === "row" && state.selection.id === props.row.id,
+  (state) => state.selection?.kind === "row" && (state.selection.id === props.row.id || state.selectedIds.includes(props.row.id)),
 );
 const landed = useEditorSelector((state) => state.landedId === props.row.id);
 
@@ -64,7 +65,7 @@ function moveRow(dir: number) {
     v-drag="{ editor, data: { kind: 'row', rowId: row.id } }"
     v-drop="{ editor, data: { kind: 'row', rowId: row.id, index }, orientation: 'vertical' }"
     :class="classes"
-    @click.stop="editor.select({ kind: 'row', id: row.id })"
+    @click.stop="selectFromClick(editor, $event, { kind: 'row', id: row.id })"
   >
     <div
       v-if="isOver"

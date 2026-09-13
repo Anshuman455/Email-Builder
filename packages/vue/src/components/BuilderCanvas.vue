@@ -8,7 +8,7 @@
  * 4. Footer with "Add row"
  */
 
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useEditor, useTranslator } from "../context";
 import { useDragState, useEditorSelector } from "../composables";
 import { vDrop } from "../directives";
@@ -27,6 +27,8 @@ const rows = useEditorSelector((state) => state.document.rows);
 const settings = useEditorSelector((state) => state.document.settings);
 const contentWidth = computed(() => settings.value.contentWidth || 600);
 const device = ref<"desktop" | "mobile">("desktop");
+/* Blocks read the editor's device to preview their mobile overrides. */
+watch(device, (next) => editor.setDevice(next));
 const dragState = useDragState();
 
 const targetWidth = computed(() => (device.value === "mobile" ? 360 : contentWidth.value));

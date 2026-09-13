@@ -71,3 +71,87 @@ export function hideClass(style: Record<string, any>): string {
   if (style.hideOnDesktop) classes.push("eb-hide-desktop");
   return classes.length ? ` class="${classes.join(" ")}"` : "";
 }
+
+/* ── Mobile overrides ──
+ *
+ * A block can look different on phones: another font size, alignment or padding. Desktop stays
+ * inline-styled as always; the overrides ship as one media query in the email's <style>, keyed to
+ * a class on the block's outer table (`eb-m-<id>`), so clients that ignore media queries still get
+ * the desktop design. */
+
+export const mobileDefaults = () => ({
+  /** 0 keeps the desktop size. */
+  mobileFontSize: 0,
+  /** "" keeps the desktop alignment. */
+  mobileAlign: "",
+  mobilePaddingEnabled: false,
+  mobilePadding: { top: 12, right: 16, bottom: 12, left: 16 },
+});
+
+export const mobileGroup = (options: { typography?: boolean } = {}): FieldGroup => ({
+  title: "Mobile",
+  target: "style",
+  collapsed: true,
+  fields: [
+    ...(options.typography
+      ? [{ kind: "number", key: "mobileFontSize", label: "Font size on mobile", min: 0, max: 72, suffix: "px", help: "0 keeps the desktop size." } as Field]
+      : []),
+    {
+      kind: "segmented",
+      key: "mobileAlign",
+      label: "Alignment on mobile",
+      options: [
+        { label: "Same", value: "" },
+        { label: "Left", value: "left" },
+        { label: "Center", value: "center" },
+        { label: "Right", value: "right" },
+      ],
+    },
+    { kind: "toggle", key: "mobilePaddingEnabled", label: "Different padding on mobile" },
+    { kind: "padding", key: "mobilePadding", label: "Padding on mobile", when: (_value, block) => !!block.style?.mobilePaddingEnabled },
+  ],
+});
+
+const MOBILE_ALIGN = new Set(["left", "center", "right"]);
+
+export function hasMobileOverrides(style: Record<string, any> | undefined): boolean {
+  if (!style) return false;
+  return Number(style.mobileFontSize) > 0 || MOBILE_ALIGN.has(style.mobileAlign) || (!!style.mobilePaddingEnabled && !!style.mobilePadding);
+}
+
+/** The block's style as it renders on mobile — used by the canvas's Mobile preview. */
+export function applyMobileStyle<S extends Record<string, any>>(style: S): S {
+  if (!hasMobileOverrides(style)) return style;
+  return {
+    ...style,
+    ...(Number(style.mobileFontSize) > 0 ? { fontSize: Number(style.mobileFontSize) } : {}),
+    ...(MOBILE_ALIGN.has(style.mobileAlign) ? { align: style.mobileAlign } : {}),
+    ...(style.mobilePaddingEnabled && style.mobilePadding ? { padding: style.mobilePadding } : {}),
+  };
+}
+
+export function mobileClass(blockId: string): string {
+  return `eb-m-${blockId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+}
+
+/** CSS for one block's overrides, to sit inside the mobile media query. Empty when it has none. */
+export function mobileRules(block: { id: string; style?: Record<string, any> }): string {
+  const style = block.style ?? {};
+  if (!hasMobileOverrides(style)) return "";
+  const cls = mobileClass(block.id);
+  const rules: string[] = [];
+  if (style.mobilePaddingEnabled && style.mobilePadding) {
+    const p = style.mobilePadding;
+    rules.push(`.${cls}>tbody>tr>td,.${cls}>tr>td{padding:${num(p.top)}px ${num(p.right)}px ${num(p.bottom)}px ${num(p.left)}px!important}`);
+  }
+  const inner: string[] = [];
+  if (MOBILE_ALIGN.has(style.mobileAlign)) inner.push(`text-align:${style.mobileAlign}!important`);
+  if (Number(style.mobileFontSize) > 0) inner.push(`font-size:${num(style.mobileFontSize)}px!important`);
+  if (inner.length) rules.push(`.${cls},.${cls} *{${inner.join(";")}}`);
+  return rules.join("");
+}
+
+function num(value: unknown): number {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}

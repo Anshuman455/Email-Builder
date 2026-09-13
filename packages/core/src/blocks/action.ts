@@ -3,7 +3,7 @@ import { defineBlock } from "../registry";
 import { padding } from "../document/defaults";
 import { mso, safeImageUrl } from "../util/html";
 import { ICONS } from "./icons";
-import { blockShellStyles, hideClass, visibilityGroup } from "./common";
+import { blockShellStyles, hideClass, mobileDefaults, mobileGroup, visibilityGroup } from "./common";
 
 /* ────────────────────────────── Button ──────────────────────────────
  *
@@ -40,6 +40,7 @@ export const buttonBlock = defineBlock({
     fullWidth: false,
     border: { width: 0, style: "none" as Border["style"], color: "#2563eb" },
     hideOnMobile: false,
+    ...mobileDefaults(),
     hideOnDesktop: false,
   }),
 
@@ -77,6 +78,7 @@ export const buttonBlock = defineBlock({
       ],
     },
     { title: "Spacing", target: "style", fields: [{ kind: "padding", key: "padding", label: "Padding" }, { kind: "color", key: "backgroundColor", label: "Background", allowTransparent: true }] },
+    mobileGroup({ typography: true }),
     visibilityGroup(),
   ],
 
