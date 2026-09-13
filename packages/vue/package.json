@@ -1,6 +1,6 @@
 {
   "name": "@email-builder/vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue 3 bindings for the email builder. A thin view layer over @email-builder/engine.",
   "keywords": [
     "email",
@@ -48,8 +48,8 @@
     "vue": ">=3.4"
   },
   "dependencies": {
-    "@email-builder/core": "0.1.0",
-    "@email-builder/engine": "0.1.0"
+    "@email-builder/core": "0.2.0",
+    "@email-builder/engine": "0.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

@@ -1,6 +1,6 @@
 {
   "name": "@email-builder/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Document model, block registry, merge-field registry and email compiler. Zero dependencies, zero framework.",
   "keywords": [
     "email",
