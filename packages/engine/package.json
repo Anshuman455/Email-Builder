@@ -2,7 +2,24 @@
   "name": "@email-builder/engine",
   "version": "0.1.0",
   "description": "Headless editor controller, drag engine and inline-edit controller. Framework-agnostic DOM.",
+  "keywords": [
+    "email",
+    "email-builder",
+    "email-editor",
+    "drag-and-drop",
+    "headless"
+  ],
   "license": "MIT",
+  "author": "Anshuman Kumar Kushwaha",
+  "homepage": "https://github.com/Anshuman455/Email-Builder/tree/main/packages/engine#readme",
+  "bugs": {
+    "url": "https://github.com/Anshuman455/Email-Builder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/engine"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -12,22 +29,25 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap --external @email-builder/core",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@email-builder/core": "0.1.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
-    "directory": "packages/engine"
+  "publishConfig": {
+    "access": "public"
   }
 }

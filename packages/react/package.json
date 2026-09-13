@@ -1,8 +1,26 @@
 {
   "name": "@email-builder/react",
   "version": "0.1.0",
-  "description": "React bindings for the email builder. Thin view layer over @email-builder/engine \u2014 no document logic, no drag logic.",
+  "description": "React bindings for the email builder. Thin view layer over @email-builder/engine — no document logic, no drag logic.",
+  "keywords": [
+    "email",
+    "email-builder",
+    "email-editor",
+    "drag-and-drop",
+    "react",
+    "react-component"
+  ],
   "license": "MIT",
+  "author": "Anshuman Kumar Kushwaha",
+  "homepage": "https://github.com/Anshuman455/Email-Builder/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/Anshuman455/Email-Builder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/react"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -12,14 +30,19 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap --external react --external react-dom --external @email-builder/core --external @email-builder/engine"
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap --external react --external react-dom --external @email-builder/core --external @email-builder/engine",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -35,9 +58,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
-    "directory": "packages/react"
+  "publishConfig": {
+    "access": "public"
   }
 }

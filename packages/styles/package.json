@@ -2,25 +2,47 @@
   "name": "@email-builder/styles",
   "version": "0.1.0",
   "description": "The builder chrome stylesheet. Namespaced .eb-* and themed entirely through CSS custom properties.",
+  "keywords": [
+    "email",
+    "email-builder",
+    "css",
+    "theme",
+    "css-variables"
+  ],
   "license": "MIT",
+  "author": "Anshuman Kumar Kushwaha",
+  "homepage": "https://github.com/Anshuman455/Email-Builder/tree/main/packages/styles#readme",
+  "bugs": {
+    "url": "https://github.com/Anshuman455/Email-Builder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/styles"
+  },
   "main": "./dist/email-builder.css",
   "style": "./dist/email-builder.css",
   "exports": {
     ".": "./dist/email-builder.css",
     "./css": "./dist/email-builder.css",
     "./layered": "./dist/email-builder.layered.css",
-    "./variables": "./dist/variables.css"
+    "./variables": "./dist/variables.css",
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
-  "scripts": {
-    "build": "node build.mjs"
+  "sideEffects": [
+    "*.css"
+  ],
+  "engines": {
+    "node": ">=18"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
-    "directory": "packages/styles"
+  "scripts": {
+    "build": "node build.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

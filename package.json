@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "description": "Framework-agnostic drag-and-drop email builder for React and Vue 3.",
+  "license": "MIT",
+  "author": "Anshuman Kumar Kushwaha",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git"
+  },
   "workspaces": [
     "packages/*",
     "examples/*"
@@ -12,7 +18,9 @@
     "dev:react": "npm run dev -w react-demo",
     "dev:vue": "npm run dev -w vue-demo",
     "test": "npm run test -w @email-builder/core && npm run test -w @email-builder/engine",
-    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p packages/engine && tsc --noEmit -p packages/react && vue-tsc --noEmit -p packages/vue"
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p packages/engine && tsc --noEmit -p packages/react && vue-tsc --noEmit -p packages/vue",
+    "release:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run -w @email-builder/core -w @email-builder/engine -w @email-builder/styles -w @email-builder/react -w @email-builder/vue",
+    "release": "npm run release:check && npm publish -w @email-builder/core -w @email-builder/engine -w @email-builder/styles -w @email-builder/react -w @email-builder/vue --access public"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
@@ -20,5 +28,7 @@
     "vite": "^6.0.5",
     "vitest": "^2.1.8"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

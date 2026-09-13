@@ -2,7 +2,25 @@
   "name": "@email-builder/core",
   "version": "0.1.0",
   "description": "Document model, block registry, merge-field registry and email compiler. Zero dependencies, zero framework.",
+  "keywords": [
+    "email",
+    "email-builder",
+    "html-email",
+    "email-template",
+    "newsletter",
+    "mjml-alternative"
+  ],
   "license": "MIT",
+  "author": "Anshuman Kumar Kushwaha",
+  "homepage": "https://github.com/Anshuman455/Email-Builder/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/Anshuman455/Email-Builder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/core"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -12,19 +30,22 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean --sourcemap",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
-    "directory": "packages/core"
+  "publishConfig": {
+    "access": "public"
   }
 }
