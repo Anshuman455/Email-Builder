@@ -202,43 +202,54 @@ function addBlock(type: string) {
       <!-- Structure Tab -->
       <template v-else>
         <div class="structure-tree">
+          <p v-if="document.rows.length === 0" class="structure-tree__empty">{{ t("structure.empty") }}</p>
           <div
             v-for="(row, rIndex) in document.rows"
             :key="row.id"
             :class="['structure-row', selection?.kind === 'row' && selection.id === row.id ? 'structure-row--selected' : '']"
-            @click="editor.select({ kind: 'row', id: row.id })"
           >
-            <div class="structure-row__header">
+            <button
+              type="button"
+              class="structure-row__header"
+              :aria-pressed="selection?.kind === 'row' && selection.id === row.id"
+              @click="editor.select({ kind: 'row', id: row.id })"
+            >
               <EbGlyph name="table_rows" />
-              <span>Row {{ rIndex + 1 }}</span>
-              <span class="structure-row__badge">{{ row.columns.length }} col</span>
-            </div>
+              <span class="structure-row__title">{{ t("structure.row") }} {{ rIndex + 1 }}</span>
+              <span class="structure-row__badge">
+                {{ row.columns.length }} {{ row.columns.length === 1 ? t("structure.column") : t("structure.columns") }}
+              </span>
+            </button>
 
             <div class="structure-row__columns">
-              <div
-                v-for="(col, cIndex) in row.columns"
-                :key="col.id"
-                class="structure-column"
-              >
-                <div
+              <div v-for="(col, cIndex) in row.columns" :key="col.id" class="structure-column">
+                <!-- A single-column row needs no column level: its blocks sit directly under the row. -->
+                <button
+                  v-if="row.columns.length > 1"
+                  type="button"
                   :class="['structure-column__header', selection?.kind === 'column' && selection.id === col.id ? 'structure-column--selected' : '']"
-                  @click.stop="editor.select({ kind: 'column', id: col.id })"
+                  :aria-pressed="selection?.kind === 'column' && selection.id === col.id"
+                  @click="editor.select({ kind: 'column', id: col.id })"
                 >
                   <EbGlyph name="view_column" />
-                  <span>Column {{ cIndex + 1 }}</span>
+                  <span class="structure-column__title">{{ t("structure.columnLabel") }} {{ cIndex + 1 }}</span>
                   <span class="structure-column__badge">{{ col.blocks.length }}</span>
-                </div>
+                </button>
 
-                <div v-if="col.blocks.length > 0" class="structure-column__blocks">
-                  <div
+                <div :class="['structure-column__blocks', row.columns.length === 1 ? 'structure-column__blocks--flat' : '']">
+                  <span v-if="col.blocks.length === 0" class="structure-block structure-block--empty">{{ t("structure.emptyColumn") }}</span>
+                  <button
                     v-for="b in col.blocks"
+                    v-else
                     :key="b.id"
+                    type="button"
                     :class="['structure-block', selection?.kind === 'block' && selection.id === b.id ? 'structure-block--selected' : '']"
-                    @click.stop="editor.select({ kind: 'block', id: b.id })"
+                    :aria-pressed="selection?.kind === 'block' && selection.id === b.id"
+                    @click="editor.select({ kind: 'block', id: b.id })"
                   >
                     <EbGlyph :name="BLOCK_ICONS[b.type] || 'widgets'" />
-                    <span>{{ editor.blocks.get(b.type)?.label || b.type }}</span>
-                  </div>
+                    <span class="structure-block__label">{{ editor.blocks.get(b.type)?.label || b.type }}</span>
+                  </button>
                 </div>
               </div>
             </div>

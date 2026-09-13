@@ -325,8 +325,15 @@ export function createDragEngine(options: DragEngineOptions): DragEngine {
     const onKeyDown = (event: KeyboardEvent) => {
       if (draggableOptions.disabled) return;
       if (event.key !== " " && event.key !== "Enter") return;
+      /* Only a key pressed on the handle itself starts a keyboard drag. When the whole block is the
+         handle, keys typed into its inline-editable text bubble up here too — cancelling those ate
+         every space and every Enter / Shift+Enter the author typed. */
+      if (event.target !== handle) return;
       if (dragging) return;
       event.preventDefault();
+      /* The same keypress bubbles on to the window listener, which reads Space/Enter as "drop" —
+         claim it so the drag it just started isn't immediately finished. */
+      claimed.add(event);
       begin(data, true);
     };
 
@@ -390,6 +397,7 @@ export function createDragEngine(options: DragEngineOptions): DragEngine {
       return;
     }
     if (!state.get().keyboard) return;
+    if (claimed.has(event)) return;
 
     /* Keyboard dragging walks the registered targets in document order. It is the only path that
        does not need a pointer, and the only one a screen-reader user has. */

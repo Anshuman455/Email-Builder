@@ -18,6 +18,7 @@ import { useDragState, useEditorSelector } from "../composables";
 import { vDrag, vDrop } from "../directives";
 import BuilderColumn from "./BuilderColumn.vue";
 import EbGlyph from "./EbGlyph.vue";
+import { rowCanvasStyle } from "@email-builder/engine";
 
 const props = defineProps<{ row: Row; index: number }>();
 
@@ -139,7 +140,7 @@ function moveRow(dir: number) {
       </div>
     </div>
 
-    <div class="builder-row__columns">
+    <div class="builder-row__columns" :style="rowCanvasStyle(row.style)">
       <BuilderColumn
         v-for="(column, ci) in row.columns"
         :key="column.id"

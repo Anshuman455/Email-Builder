@@ -15,6 +15,7 @@
 
 import { computed, ref } from "vue";
 import type { FieldGroup } from "@email-builder/core";
+import { groupFields } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 import { rowGroups, columnGroups, LAYOUT_KEY, layoutValue, parseLayout } from "../schemas";
@@ -82,6 +83,33 @@ function rowChange(key: string, value: unknown) {
   if (key === LAYOUT_KEY) editor.setRowLayout(row.id, parseLayout(value));
   else editor.updateRowStyle(row.id, { [key]: value });
 }
+
+/* ─── Column panel ─── */
+const selectedColumn = computed(() => {
+  const sel = selection.value;
+  if (sel?.kind !== "column") return null;
+  for (const row of document.value.rows) for (const col of row.columns) if (col.id === sel.id) return col;
+  return null;
+});
+const columnSchema = computed(() => columnGroups());
+function columnValue(key: string): unknown {
+  return (selectedColumn.value?.style as unknown as Record<string, unknown> | undefined)?.[key];
+}
+function columnChange(key: string, value: unknown) {
+  const column = selectedColumn.value;
+  if (column) editor.updateColumnStyle(column.id, { [key]: value });
+}
+
+/* A selection with nothing to show — a column that was removed, a block deleted while selected —
+   gets an explanation instead of a blank panel. */
+const showEmpty = computed(
+  () =>
+    !!selectionKind.value &&
+    selectionKind.value !== "settings" &&
+    !selectedBlock.value &&
+    !selectedRow.value &&
+    !selectedColumn.value,
+);
 
 /* ─── Settings panel ─── */
 const settings = computed(() => document.value.settings);
@@ -193,6 +221,23 @@ function deselect() {
       >
         <EbGlyph name="arrow_back" />
         <span>All Settings</span>
+      </button>
+    </header>
+
+    <!-- Column Header -->
+    <header v-else-if="selectionKind === 'column' && selectedColumn" class="builder-inspector__header">
+      <div class="builder-inspector__header-title">
+        <span class="builder-inspector__header-icon">
+          <EbGlyph name="view_column" />
+        </span>
+        <div>
+          <span class="builder-inspector__title-main">{{ t("inspector.columnTitle") }}</span>
+          <span class="builder-inspector__title-sub">{{ t("inspector.columnSub") }}</span>
+        </div>
+      </div>
+      <button type="button" class="builder-inspector__nav-btn" :title="t('inspector.back')" @click="deselect">
+        <EbGlyph name="arrow_back" />
+        <span>{{ t("inspector.allSettings") }}</span>
       </button>
     </header>
 
@@ -458,34 +503,28 @@ function deselect() {
             <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body">
-            <template v-for="(field, fi) in group.fields" :key="field.key">
-              <div v-if="field.inline && fi > 0 && !group.fields[fi - 1]?.inline" />
-              <div
-                v-if="field.inline || (group.fields[fi + 1]?.inline && !field.inline)"
-                class="eb-field-row"
-              >
+            <!-- Paired fields (Size | Weight) share a two-column row; the rest are full width. -->
+            <template v-for="(run, runIndex) in groupFields(group.fields)" :key="runIndex">
+              <div v-if="run.inline" class="eb-field-row">
                 <BuilderField
-                  v-if="!field.inline"
-                  :field="field"
-                  :value="blockValue(group, field.key)"
-                  :block="selectedBlock"
-                  @change="blockChange(group, field.key, $event)"
-                />
-                <BuilderField
-                  v-if="field.inline"
+                  v-for="field in run.fields"
+                  :key="field.key"
                   :field="field"
                   :value="blockValue(group, field.key)"
                   :block="selectedBlock"
                   @change="blockChange(group, field.key, $event)"
                 />
               </div>
-              <BuilderField
-                v-else-if="!field.inline && !group.fields[fi + 1]?.inline"
-                :field="field"
-                :value="blockValue(group, field.key)"
-                :block="selectedBlock"
-                @change="blockChange(group, field.key, $event)"
-              />
+              <template v-else>
+                <BuilderField
+                  v-for="field in run.fields"
+                  :key="field.key"
+                  :field="field"
+                  :value="blockValue(group, field.key)"
+                  :block="selectedBlock"
+                  @change="blockChange(group, field.key, $event)"
+                />
+              </template>
             </template>
           </div>
         </details>
@@ -514,6 +553,50 @@ function deselect() {
           </div>
         </details>
       </template>
+      <!-- ─── Selected Column ─── -->
+      <template v-else-if="selectionKind === 'column' && selectedColumn">
+        <details v-for="group in columnSchema" :key="group.title" class="eb-group" :open="!group.collapsed">
+          <summary class="eb-group__header">
+            {{ group.title }}
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
+          </summary>
+          <div class="eb-group__body">
+            <template v-for="(run, runIndex) in groupFields(group.fields)" :key="runIndex">
+              <div v-if="run.inline" class="eb-field-row">
+                <BuilderField
+                  v-for="field in run.fields"
+                  :key="field.key"
+                  :field="field"
+                  :value="columnValue(field.key)"
+                  @change="columnChange(field.key, $event)"
+                />
+              </div>
+              <template v-else>
+                <BuilderField
+                  v-for="field in run.fields"
+                  :key="field.key"
+                  :field="field"
+                  :value="columnValue(field.key)"
+                  @change="columnChange(field.key, $event)"
+                />
+              </template>
+            </template>
+          </div>
+        </details>
+      </template>
+
+      <!-- ─── Nothing to edit ─── -->
+      <div v-if="showEmpty" class="eb-inspector__empty" role="status">
+        <span class="eb-inspector__empty-icon">
+          <EbGlyph name="tune" />
+        </span>
+        <p class="eb-inspector__empty-title">{{ t("inspector.emptyTitle") }}</p>
+        <p class="eb-inspector__empty-text">{{ t("inspector.empty") }}</p>
+        <button type="button" class="eb-btn eb-btn--outline" @click="deselect">
+          <EbGlyph name="arrow_back" />
+          {{ t("inspector.back") }}
+        </button>
+      </div>
     </div>
   </aside>
 </template>

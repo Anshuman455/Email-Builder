@@ -26,8 +26,14 @@ export const imageBlock = defineBlock({
     padding: padding(12, 24, 12, 24),
     backgroundColor: "transparent",
     align: "center",
-    /** Percentage of the available column width. Resolved to px at render time. */
+    /** How the width is set: "%" of the column, or a fixed "px" value. */
+    widthUnit: "%",
+    /** Percentage of the available column width, when `widthUnit` is "%". Resolved to px at render time. */
     widthPercent: 100,
+    /** Fixed width in px, when `widthUnit` is "px". Never wider than the column. */
+    widthPx: 300,
+    /** Fixed height in px. 0 keeps the image's own proportions. */
+    height: 0,
     borderRadius: 0,
     border: { width: 0, style: "none" as Border["style"], color: "#e2e8f0" },
     hideOnMobile: false,
@@ -49,7 +55,18 @@ export const imageBlock = defineBlock({
       target: "style",
       fields: [
         { kind: "align", key: "align", label: "Alignment" },
-        { kind: "range", key: "widthPercent", label: "Width", min: 10, max: 100, step: 1, suffix: "%" },
+        {
+          kind: "segmented",
+          key: "widthUnit",
+          label: "Width in",
+          options: [
+            { label: "%", value: "%" },
+            { label: "px", value: "px" },
+          ],
+        },
+        { kind: "range", key: "widthPercent", label: "Width", min: 10, max: 100, step: 1, suffix: "%", when: (_v, b) => b.style.widthUnit !== "px" },
+        { kind: "number", key: "widthPx", label: "Width", min: 10, max: 1200, suffix: "px", when: (_v, b) => b.style.widthUnit === "px", help: "Never wider than the column." },
+        { kind: "number", key: "height", label: "Height", min: 0, max: 2000, suffix: "px", help: "0 keeps the image's proportions. A fixed height crops the image to fill." },
         { kind: "number", key: "borderRadius", label: "Corner radius", min: 0, max: 60, suffix: "px" },
         { kind: "border", key: "border", label: "Border" },
       ],
@@ -60,7 +77,11 @@ export const imageBlock = defineBlock({
 
   render: ({ content, style, width, esc, escAttr, url, styleAttr, preview }) => {
     const src = safeImageUrl(content.src);
-    const target = Math.max(1, Math.round((width * (style.widthPercent || 100)) / 100));
+    /* Both units end as a hard pixel width — Outlook ignores CSS width — and never exceed the column. */
+    const requested = style.widthUnit === "px" ? Number(style.widthPx) || width : (width * (style.widthPercent || 100)) / 100;
+    const target = Math.max(1, Math.min(width, Math.round(requested)));
+    /* Height in email can only be a fixed pixel value: there is no container height for a % to refer to. */
+    const height = Math.max(0, Math.round(Number(style.height) || 0));
 
     if (!src) {
       /* Preview gets a visible placeholder so an un-sourced image is obviously unfinished; the
@@ -69,10 +90,11 @@ export const imageBlock = defineBlock({
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td${styleAttr(blockShellStyles(style))}><div class="eb-placeholder" style="height:140px">Choose an image</div></td></tr></table>`;
     }
 
-    const img = `<img src="${escAttr(src)}" alt="${escAttr(content.alt ?? "")}"${content.title ? ` title="${escAttr(content.title)}"` : ""} width="${target}"${styleAttr({
+    const img = `<img src="${escAttr(src)}" alt="${escAttr(content.alt ?? "")}"${content.title ? ` title="${escAttr(content.title)}"` : ""} width="${target}"${height ? ` height="${height}"` : ""}${styleAttr({
       width: `${target}px`,
       maxWidth: "100%",
-      height: "auto",
+      height: height ? `${height}px` : "auto",
+      objectFit: height ? "cover" : undefined,
       display: "block",
       border: "0",
       outline: "none",

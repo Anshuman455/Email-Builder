@@ -227,55 +227,76 @@ export function BuilderPalette({ className }: { className?: string }) {
         ) : (
           /* Structure Tab */
           <div className="structure-tree">
-            {document.rows.map((row, rIndex) => (
-              <div
-                key={row.id}
-                className={`structure-row${selection?.kind === "row" && selection.id === row.id ? " structure-row--selected" : ""}`}
-                onClick={() => editor.select({ kind: "row", id: row.id })}
-              >
-                <div className="structure-row__header">
-                  <Glyph name="table_rows" />
-                  <span>Row {rIndex + 1}</span>
-                  <span className="structure-row__badge">{row.columns.length} col</span>
-                </div>
+            {document.rows.length === 0 && <p className="structure-tree__empty">{t("structure.empty")}</p>}
+            {document.rows.map((row, rIndex) => {
+              const rowSelected = selection?.kind === "row" && selection.id === row.id;
+              const single = row.columns.length === 1;
+              return (
+                <div key={row.id} className={`structure-row${rowSelected ? " structure-row--selected" : ""}`}>
+                  <button
+                    type="button"
+                    className="structure-row__header"
+                    aria-pressed={rowSelected}
+                    onClick={() => editor.select({ kind: "row", id: row.id })}
+                  >
+                    <Glyph name="table_rows" />
+                    <span className="structure-row__title">
+                      {t("structure.row")} {rIndex + 1}
+                    </span>
+                    <span className="structure-row__badge">
+                      {row.columns.length} {single ? t("structure.column") : t("structure.columns")}
+                    </span>
+                  </button>
 
-                <div className="structure-row__columns">
-                  {row.columns.map((col, cIndex) => (
-                    <div key={col.id} className="structure-column">
-                      <div
-                        className={`structure-column__header${selection?.kind === "column" && selection.id === col.id ? " structure-column--selected" : ""}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          editor.select({ kind: "column", id: col.id });
-                        }}
-                      >
-                        <Glyph name="view_column" />
-                        <span>Column {cIndex + 1}</span>
-                        <span className="structure-column__badge">{col.blocks.length}</span>
-                      </div>
-
-                      {col.blocks.length > 0 && (
-                        <div className="structure-column__blocks">
-                          {col.blocks.map((b) => (
-                            <div
-                              key={b.id}
-                              className={`structure-block${selection?.kind === "block" && selection.id === b.id ? " structure-block--selected" : ""}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                editor.select({ kind: "block", id: b.id });
-                              }}
+                  <div className="structure-row__columns">
+                    {row.columns.map((col, cIndex) => {
+                      const columnSelected = selection?.kind === "column" && selection.id === col.id;
+                      return (
+                        <div key={col.id} className="structure-column">
+                          {/* A single-column row needs no column level: its blocks sit directly under the row. */}
+                          {!single && (
+                            <button
+                              type="button"
+                              className={`structure-column__header${columnSelected ? " structure-column--selected" : ""}`}
+                              aria-pressed={columnSelected}
+                              onClick={() => editor.select({ kind: "column", id: col.id })}
                             >
-                              <Glyph name={BLOCK_ICONS[b.type] || "widgets"} />
-                              <span>{editor.blocks.get(b.type)?.label || b.type}</span>
-                            </div>
-                          ))}
+                              <Glyph name="view_column" />
+                              <span className="structure-column__title">
+                                {t("structure.columnLabel")} {cIndex + 1}
+                              </span>
+                              <span className="structure-column__badge">{col.blocks.length}</span>
+                            </button>
+                          )}
+
+                          <div className={`structure-column__blocks${single ? " structure-column__blocks--flat" : ""}`}>
+                            {col.blocks.length === 0 ? (
+                              <span className="structure-block structure-block--empty">{t("structure.emptyColumn")}</span>
+                            ) : (
+                              col.blocks.map((b) => {
+                                const blockSelected = selection?.kind === "block" && selection.id === b.id;
+                                return (
+                                  <button
+                                    key={b.id}
+                                    type="button"
+                                    className={`structure-block${blockSelected ? " structure-block--selected" : ""}`}
+                                    aria-pressed={blockSelected}
+                                    onClick={() => editor.select({ kind: "block", id: b.id })}
+                                  >
+                                    <Glyph name={BLOCK_ICONS[b.type] || "widgets"} />
+                                    <span className="structure-block__label">{editor.blocks.get(b.type)?.label || b.type}</span>
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

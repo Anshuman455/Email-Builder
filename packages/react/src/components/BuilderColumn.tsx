@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import { columnWidths, type Column, type Row } from "@email-builder/core";
+import { columnCanvasStyle } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
@@ -53,7 +54,7 @@ export function BuilderColumn({ row, column, columnIndex }: BuilderColumnProps) 
     <div
       ref={drop.setNode}
       className={classes}
-      style={{ flex: `0 0 ${basis}`, maxWidth: basis }}
+      style={{ flex: `0 0 ${basis}`, maxWidth: basis, ...columnCanvasStyle(column.style) }}
       onClick={(event) => {
         event.stopPropagation();
         editor.select({ kind: "column", id: column.id });

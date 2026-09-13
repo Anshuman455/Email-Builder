@@ -37,3 +37,6 @@ export { EDITOR_ICONS, editorIcon, type EditorIconName } from "./icons";
 export type { ToolbarAction } from "./actions";
 export { htmlToRows } from "./import";
 export type { ImportedRow } from "./import";
+export { groupFields } from "./fields";
+export type { FieldRun } from "./fields";
+export { columnCanvasStyle, rowCanvasStyle } from "./canvas";

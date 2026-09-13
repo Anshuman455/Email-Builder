@@ -2,6 +2,35 @@
 
 All notable changes to the `@email-builder/*` packages. The five packages are versioned together.
 
+## Unreleased
+
+### Added
+
+- **Image size in px or %.** The Image block's width can be a percentage of the column or a fixed
+  pixel value (never wider than the column), and it can have a fixed pixel height — 0 keeps the
+  image's proportions; a fixed height crops to fill.
+
+### Changed
+
+- **Column settings panel.** Selecting a column shows its background, vertical alignment, padding
+  and border in the right sidebar, and a selection with nothing to edit shows an explanation
+  instead of a blank panel.
+- **Typography layout.** Size | Weight and Line height | Letter spacing sit side by side; Font and
+  Colour are full width, with even spacing between fields.
+- **Round colour swatches** in every colour field.
+- **Structure panel redesign.** Rows are cards with a column count, multi-column rows list their
+  columns, and blocks sit on an indented outline. Every item is a button, and the current selection
+  is highlighted.
+
+### Fixed
+
+- **Space, Enter and Shift+Enter now type into text and headings.** The drag engine cancelled those
+  keys whenever they reached a drag handle, including keys typed into a block being edited.
+- **Keyboard dragging from a grip works.** The keypress that started the drag also ended it.
+- **Column and row settings now show on the canvas.** Background, padding, border, corner radius,
+  vertical alignment (columns) and background image (rows) were saved and exported, but the canvas
+  ignored them. Also available as `columnCanvasStyle()` / `rowCanvasStyle()` in the engine.
+
 ## 0.2.1
 
 Re-release of 0.2.0 with no code changes. `@email-builder/core@0.2.0` could not be published, which

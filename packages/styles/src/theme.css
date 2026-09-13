@@ -5442,3 +5442,250 @@ select.inspector-input {
 .eb-codeview__error {
   color: var(--eb-danger);
 }
+
+/* ── Structure panel ──
+ *
+ * The email as an outline: each row is a card with its column count; multi-column rows list their
+ * columns; blocks hang off an indented guide line. Every level is a button, so the outline is
+ * keyboard-navigable and the selected item mirrors the canvas selection. */
+
+.structure-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.structure-tree__empty {
+  margin: 8px 4px;
+  font-size: var(--eb-text-sm);
+  line-height: 1.5;
+  color: var(--eb-text-muted);
+}
+
+.structure-row {
+  border: 1px solid var(--eb-border);
+  border-radius: var(--eb-radius);
+  background: var(--eb-surface);
+  overflow: hidden;
+  transition: border-color var(--eb-duration-fast) var(--eb-ease), box-shadow var(--eb-duration-fast) var(--eb-ease);
+}
+
+.structure-row:hover {
+  border-color: var(--eb-border-strong);
+}
+
+.structure-row--selected,
+.structure-row--selected:hover {
+  border-color: var(--eb-accent);
+  box-shadow: 0 0 0 3px var(--eb-accent-ring);
+}
+
+.structure-row__header,
+.structure-column__header,
+.structure-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--eb-duration-fast) var(--eb-ease), color var(--eb-duration-fast) var(--eb-ease);
+}
+
+.structure-row__header {
+  padding: 9px 10px;
+  background: var(--eb-surface-subtle);
+  border-bottom: 1px solid var(--eb-border);
+  font-size: var(--eb-text-md);
+  font-weight: 600;
+  color: var(--eb-text);
+}
+
+.structure-row__header:hover {
+  background: var(--eb-surface-sunken);
+}
+
+.structure-row--selected .structure-row__header {
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+}
+
+.structure-row__header .eb-glyph,
+.structure-column__header .eb-glyph,
+.structure-block .eb-glyph {
+  flex: none;
+  font-size: 16px;
+  color: var(--eb-text-muted);
+}
+
+.structure-row--selected .structure-row__header .eb-glyph,
+.structure-column--selected .eb-glyph,
+.structure-block--selected .eb-glyph {
+  color: var(--eb-accent);
+}
+
+.structure-row__title,
+.structure-column__title,
+.structure-block__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.structure-row__badge,
+.structure-column__badge {
+  flex: none;
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--eb-surface-sunken);
+  font-size: var(--eb-text-xs);
+  font-weight: 500;
+  color: var(--eb-text-muted);
+}
+
+.structure-row--selected .structure-row__badge {
+  background: var(--eb-surface);
+  color: var(--eb-accent);
+}
+
+.structure-row__columns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+}
+
+.structure-column__header {
+  padding: 6px 8px;
+  border-radius: var(--eb-radius-sm);
+  font-size: var(--eb-text-sm);
+  font-weight: 500;
+  color: var(--eb-text-secondary);
+}
+
+.structure-column__header:hover {
+  background: var(--eb-surface-sunken);
+}
+
+.structure-column--selected,
+.structure-column--selected:hover {
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+}
+
+.structure-column__blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 4px 15px;
+  padding-left: 8px;
+  border-left: 1px solid var(--eb-border);
+}
+
+.structure-column__blocks--flat {
+  margin: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.structure-block {
+  padding: 6px 8px;
+  border-radius: var(--eb-radius-sm);
+  font-size: var(--eb-text-sm);
+  color: var(--eb-text);
+}
+
+.structure-block:hover {
+  background: var(--eb-surface-sunken);
+}
+
+.structure-block--selected,
+.structure-block--selected:hover {
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+  font-weight: 600;
+}
+
+.structure-block--empty,
+.structure-block--empty:hover {
+  cursor: default;
+  background: none;
+  font-style: italic;
+  color: var(--eb-text-subtle);
+}
+
+/* ── Colour swatches: round ──
+ *
+ * The native colour input draws a square swatch inside whatever shape its box has; its own
+ * pseudo-elements have to be rounded too, or a circle frames a square. */
+
+.eb-color__swatch {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+input[type="color"] {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+/* ── Inspector empty state ── */
+
+.eb-inspector__empty {
+  min-height: 320px;
+  gap: 10px;
+}
+
+.eb-inspector__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: var(--eb-surface-sunken);
+  color: var(--eb-text-muted);
+  font-size: 22px;
+}
+
+.eb-inspector__empty .eb-glyph svg {
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}
+
+.eb-inspector__empty-title {
+  margin: 0;
+  font-size: var(--eb-text-md);
+  font-weight: 600;
+  color: var(--eb-text);
+}
+
+.eb-inspector__empty-text {
+  max-width: 220px;
+  margin: 0;
+  color: var(--eb-text-muted);
+}
+
+.eb-inspector__empty .eb-btn {
+  gap: 6px;
+  margin-top: 6px;
+}

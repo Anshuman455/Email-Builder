@@ -12,6 +12,7 @@
 
 import { useCallback } from "react";
 import type { Row } from "@email-builder/core";
+import { rowCanvasStyle } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useDraggable, useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
@@ -161,7 +162,7 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
         </div>
       </div>
 
-      <div className="builder-row__columns eb-row__columns">
+      <div className="builder-row__columns eb-row__columns" style={rowCanvasStyle(row.style)}>
         {row.columns.map((column, columnIndex) => (
           <BuilderColumn
             key={column.id}

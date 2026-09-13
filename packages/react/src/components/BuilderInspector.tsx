@@ -24,6 +24,7 @@ import {
   decodeLayout,
 } from "../schemas";
 import { Glyph } from "./Glyph";
+import { groupFields } from "@email-builder/engine";
 
 const GLOBAL_FONTS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
@@ -83,6 +84,17 @@ export function BuilderInspector({ className }: { className?: string }) {
     if (sel?.kind !== "row") return null;
     return state.document.rows.find((r) => r.id === sel.id) ?? null;
   });
+
+  const selectedColumn = useEditorSelector((state) => {
+    const sel = state.selection;
+    if (sel?.kind !== "column") return null;
+    for (const row of state.document.rows) for (const col of row.columns) if (col.id === sel.id) return col;
+    return null;
+  });
+
+  /* A selection with nothing to show — a column that was removed, a block deleted while selected —
+     gets an explanation instead of a blank panel. */
+  const showEmpty = !!selectionKind && selectionKind !== "settings" && !selectedBlock && !selectedRow && !selectedColumn;
 
   const updateSettings = (changes: Record<string, unknown>) => {
     editor.updateSettings(changes);
@@ -166,6 +178,25 @@ export function BuilderInspector({ className }: { className?: string }) {
           >
             <Glyph name="arrow_back" />
             <span>All Settings</span>
+          </button>
+        </header>
+      )}
+
+      {/* Column Header */}
+      {selectionKind === "column" && selectedColumn && (
+        <header className="builder-inspector__header">
+          <div className="builder-inspector__header-title">
+            <span className="builder-inspector__header-icon">
+              <Glyph name="view_column" />
+            </span>
+            <div>
+              <span className="builder-inspector__title-main">{t("inspector.columnTitle")}</span>
+              <span className="builder-inspector__title-sub">{t("inspector.columnSub")}</span>
+            </div>
+          </div>
+          <button type="button" className="builder-inspector__nav-btn" title={t("inspector.back")} onClick={deselect}>
+            <Glyph name="arrow_back" />
+            <span>{t("inspector.allSettings")}</span>
           </button>
         </header>
       )}
@@ -435,23 +466,33 @@ export function BuilderInspector({ className }: { className?: string }) {
                   <Glyph name="expand_more" style={{ fontSize: 18 }} />
                 </summary>
                 <div className="eb-group__body">
-                  {group.fields.map((field) => {
-                    const value =
-                      group.target === "content"
-                        ? (selectedBlock.content ?? {})[field.key]
-                        : (selectedBlock.style ?? {})[field.key];
-                    const onChange = (v: unknown) =>
-                      group.target === "content"
-                        ? editor.updateContent(selectedBlock.id, { [field.key]: v })
-                        : editor.updateStyle(selectedBlock.id, { [field.key]: v });
-                    return (
-                      <BuilderField
-                        key={field.key}
-                        field={field}
-                        value={value}
-                        onChange={onChange}
-                        block={selectedBlock}
-                      />
+                  {groupFields(group.fields).map((run, runIndex) => {
+                    const renderField = (field: (typeof run.fields)[number]) => {
+                      const value =
+                        group.target === "content"
+                          ? (selectedBlock.content ?? {})[field.key]
+                          : (selectedBlock.style ?? {})[field.key];
+                      const onChange = (v: unknown) =>
+                        group.target === "content"
+                          ? editor.updateContent(selectedBlock.id, { [field.key]: v })
+                          : editor.updateStyle(selectedBlock.id, { [field.key]: v });
+                      return (
+                        <BuilderField
+                          key={field.key}
+                          field={field}
+                          value={value}
+                          onChange={onChange}
+                          block={selectedBlock}
+                        />
+                      );
+                    };
+                    /* Paired fields (Size | Weight) share a two-column row; the rest are full width. */
+                    return run.inline ? (
+                      <div key={`row-${runIndex}`} className="eb-field-row">
+                        {run.fields.map(renderField)}
+                      </div>
+                    ) : (
+                      run.fields.map(renderField)
                     );
                   })}
                 </div>
@@ -497,6 +538,54 @@ export function BuilderInspector({ className }: { className?: string }) {
               </details>
             ))}
           </>
+        )}
+        {/* ─── Selected Column ─── */}
+        {selectionKind === "column" && selectedColumn && (
+          <>
+            {COLUMN_GROUPS.map((group) => (
+              <details key={group.title} className="eb-group" open={!group.collapsed}>
+                <summary className="eb-group__header">
+                  {group.title}
+                  <Glyph name="expand_more" style={{ fontSize: 18 }} />
+                </summary>
+                <div className="eb-group__body">
+                  {groupFields(group.fields).map((run, runIndex) => {
+                    const renderField = (field: (typeof run.fields)[number]) => (
+                      <BuilderField
+                        key={field.key}
+                        field={field}
+                        value={(selectedColumn.style as unknown as Record<string, unknown> | undefined)?.[field.key]}
+                        onChange={(v) => editor.updateColumnStyle(selectedColumn.id, { [field.key]: v })}
+                        block={null}
+                      />
+                    );
+                    return run.inline ? (
+                      <div key={`row-${runIndex}`} className="eb-field-row">
+                        {run.fields.map(renderField)}
+                      </div>
+                    ) : (
+                      run.fields.map(renderField)
+                    );
+                  })}
+                </div>
+              </details>
+            ))}
+          </>
+        )}
+
+        {/* ─── Nothing to edit ─── */}
+        {showEmpty && (
+          <div className="eb-inspector__empty" role="status">
+            <span className="eb-inspector__empty-icon">
+              <Glyph name="tune" />
+            </span>
+            <p className="eb-inspector__empty-title">{t("inspector.emptyTitle")}</p>
+            <p className="eb-inspector__empty-text">{t("inspector.empty")}</p>
+            <button type="button" className="eb-btn eb-btn--outline" onClick={deselect}>
+              <Glyph name="arrow_back" />
+              {t("inspector.back")}
+            </button>
+          </div>
         )}
       </div>
     </aside>

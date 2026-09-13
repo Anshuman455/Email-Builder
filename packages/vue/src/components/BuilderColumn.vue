@@ -6,6 +6,7 @@
 
 import { computed } from "vue";
 import { columnWidths, type Column, type Row } from "@email-builder/core";
+import { columnCanvasStyle } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useDragState, useEditorSelector } from "../composables";
 import { vDrop } from "../directives";
@@ -60,7 +61,7 @@ const classes = computed(() =>
       container: true
     }"
     :class="classes"
-    :style="{ flex: `0 0 ${basis}`, maxWidth: basis }"
+    :style="{ flex: `0 0 ${basis}`, maxWidth: basis, ...columnCanvasStyle(column.style) }"
     @click.stop="editor.select({ kind: 'column', id: column.id })"
   >
     <div v-if="empty" :class="['eb-dropzone', isOver ? 'eb-dropzone--over' : '']">
