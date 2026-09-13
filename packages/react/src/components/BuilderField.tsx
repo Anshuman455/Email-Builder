@@ -205,18 +205,21 @@ function Control({ field, value, onChange, block, id, label, control }: ControlP
 
     case "segmented":
       return (
-        <div className="eb-segmented" role="group" aria-label={label}>
-          {field.options.map((option) => (
-            <button
-              key={String(option.value)}
-              type="button"
-              className="eb-segmented__item"
-              aria-pressed={asString(value) === String(option.value)}
-              onClick={() => onChange(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="eb-segmented inspector-segmented" role="group" aria-label={label}>
+          {field.options.map((option) => {
+            const isSelected = asString(value) === String(option.value);
+            return (
+              <button
+                key={String(option.value)}
+                type="button"
+                className={`eb-segmented__item inspector-segmented__option${isSelected ? " eb-segmented__item--active inspector-segmented__option--active" : ""}`}
+                aria-pressed={isSelected}
+                onClick={() => onChange(option.value)}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
       );
 

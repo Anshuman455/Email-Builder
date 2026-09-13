@@ -59,7 +59,10 @@ export function BuilderColumn({ row, column, columnIndex }: BuilderColumnProps) 
       }}
     >
       {empty ? (
-        <span className="eb-column__hint">{t("canvas.emptyColumn")}</span>
+        <div className={`builder-column__drop-zone${drop.isOver ? " builder-column__drop-zone--over" : ""}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add_circle</span>
+          <span>{drop.isOver ? "Drop block here" : (t("canvas.emptyColumn") || "Drop block here")}</span>
+        </div>
       ) : (
         column.blocks.map((block) => (
           <BuilderBlock

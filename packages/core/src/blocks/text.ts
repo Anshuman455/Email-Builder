@@ -106,7 +106,6 @@ export const headingBlock = defineBlock({
       title: "Content",
       target: "content",
       fields: [
-        { kind: "text", key: "text", label: "Heading", mergeable: true, placeholder: "Your headline" },
         {
           kind: "segmented",
           key: "level",

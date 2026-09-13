@@ -14,7 +14,7 @@
 import { computed } from "vue";
 import type { Row } from "@email-builder/core";
 import { useEditor } from "../context";
-import { useEditorSelector } from "../composables";
+import { useDragState, useEditorSelector } from "../composables";
 import { vDrag, vDrop } from "../directives";
 import BuilderColumn from "./BuilderColumn.vue";
 
@@ -27,6 +27,16 @@ const selected = useEditorSelector(
   (state) => state.selection?.kind === "row" && state.selection.id === props.row.id,
 );
 const landed = useEditorSelector((state) => state.landedId === props.row.id);
+
+const dragState = useDragState();
+const isOver = computed(() => {
+  const over = dragState.value.over;
+  return over?.kind === "row" && (over as any).rowId === props.row.id;
+});
+const edge = computed(() => {
+  if (!isOver.value) return null;
+  return dragState.value.indicator?.edge ?? "inside";
+});
 
 const classes = computed(() =>
   [
@@ -53,6 +63,19 @@ function moveRow(dir: number) {
     :class="classes"
     @click.stop="editor.select({ kind: 'row', id: row.id })"
   >
+    <div
+      v-if="isOver"
+      :class="['builder-drop-indicator builder-drop-indicator--row', edge === 'after' ? 'builder-drop-indicator--end' : '']"
+    >
+      <div class="builder-drop-indicator__line" />
+      <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+      <span class="builder-drop-indicator__pill">
+        <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
+        Insert row {{ edge === 'after' ? 'below' : 'above' }}
+      </span>
+      <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+    </div>
+
     <!-- Left floating toolbar -->
     <div class="builder-row__toolbar" :aria-label="`Row ${index + 1} actions`">
       <button

@@ -135,24 +135,28 @@ function addBlock(type: string) {
             <span class="palette-group__count">{{ ROW_LAYOUTS.length }}</span>
           </div>
           <div class="palette-layouts">
-            <button
+            <div
               v-for="item in ROW_LAYOUTS"
               :key="item.layout"
-              type="button"
+              v-drag="{ editor, data: { kind: 'palette-row', spans: item.spans, label: item.label } }"
+              role="button"
+              tabindex="0"
               class="palette-layout"
-              :title="`Add ${item.label} row`"
+              :title="`Add or drag ${item.label} row`"
               @click="onAddRow(item.spans)"
+              @keydown.enter.prevent="onAddRow(item.spans)"
+              @keydown.space.prevent="onAddRow(item.spans)"
             >
-              <div class="palette-layout__preview">
+              <div class="palette-layout__preview" aria-hidden="true">
                 <span
                   v-for="(span, sIndex) in item.spans"
                   :key="sIndex"
-                  class="palette-layout__col"
+                  class="palette-layout__cell"
                   :style="{ flex: span }"
                 />
               </div>
               <span class="palette-layout__label">{{ item.label }}</span>
-            </button>
+            </div>
           </div>
         </section>
 
@@ -167,14 +171,17 @@ function addBlock(type: string) {
             <span class="palette-group__count">{{ grp.blocks.length }}</span>
           </div>
           <div class="palette-blocks">
-            <button
+            <div
               v-for="b in grp.blocks"
               :key="b.type"
               v-drag="{ editor, data: { kind: 'palette', blockType: b.type } }"
-              type="button"
+              role="button"
+              tabindex="0"
               class="palette-block"
               :aria-label="`Add ${b.label} block`"
               @click="addBlock(b.type)"
+              @keydown.enter.prevent="addBlock(b.type)"
+              @keydown.space.prevent="addBlock(b.type)"
             >
               <span class="palette-block__icon-wrap">
                 <span
@@ -187,7 +194,7 @@ function addBlock(type: string) {
                 </span>
               </span>
               <span class="palette-block__label">{{ b.label }}</span>
-            </button>
+            </div>
           </div>
         </section>
       </template>

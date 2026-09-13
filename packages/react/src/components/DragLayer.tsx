@@ -34,6 +34,8 @@ export function DragLayer() {
     iconSvg = definition ? ICONS[definition.icon as keyof typeof ICONS] ?? "" : "";
   } else if (drag.active.kind === "row") {
     label = "Row";
+  } else if (drag.active.kind === "palette-row") {
+    label = drag.active.label ? `Row (${drag.active.label})` : "Row";
   }
 
   const ind = drag.indicator;
@@ -77,7 +79,7 @@ export function DragLayer() {
         <div className="eb-ghost__inner">
           {iconSvg ? (
             <span dangerouslySetInnerHTML={{ __html: iconSvg }} style={{ display: "contents" }} />
-          ) : drag.active.kind === "row" ? (
+          ) : drag.active.kind === "row" || drag.active.kind === "palette-row" ? (
             <RowIcon />
           ) : null}
           {label}

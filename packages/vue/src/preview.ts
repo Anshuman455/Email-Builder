@@ -46,7 +46,7 @@ export function compileBlockPreview({ editor, block, settings, width }: BlockPre
     url: (value) => safeUrl(value),
     styleAttr,
     preview: true,
-    sample: merge ? (text: string) => merge.sample(text) : undefined,
+    sample: undefined,
   };
 
   try {

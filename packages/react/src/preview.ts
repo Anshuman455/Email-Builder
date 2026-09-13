@@ -74,7 +74,7 @@ function makeContext(
     url: (value: unknown) => safeUrl(value),
     styleAttr,
     preview: true,
-    sample: merge ? (text: string) => merge.sample(text) : undefined,
+    sample: undefined,
   };
 }
 

@@ -265,12 +265,13 @@ function insertToken(token: string) {
     </select>
 
     <!-- segmented -->
-    <div v-else-if="kind === 'segmented'" class="eb-segmented" role="group" :aria-label="label">
+    <div v-else-if="kind === 'segmented'" class="eb-segmented inspector-segmented" role="group" :aria-label="label">
       <button
         v-for="option in options"
         :key="String(option.value)"
         type="button"
-        class="eb-segmented__item"
+        class="eb-segmented__item inspector-segmented__option"
+        :class="{ 'eb-segmented__item--active inspector-segmented__option--active': String(option.value) === text }"
         :aria-pressed="String(option.value) === text"
         @click="change(option.value)"
       >

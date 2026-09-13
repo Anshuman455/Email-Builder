@@ -22,6 +22,8 @@ export const LABELS = {
   "toolbar.save": "Save",
   "toolbar.desktop": "Desktop",
   "toolbar.mobile": "Mobile",
+  "toolbar.close": "Close",
+  "preview.title": "Preview",
   "status.idle": "All changes saved",
   "status.dirty": "Unsaved changes",
   "status.saving": "Saving…",

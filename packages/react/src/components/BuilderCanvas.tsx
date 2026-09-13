@@ -36,10 +36,22 @@ const MobileIcon = () => (
 function RowSlot({ index }: { index: number }) {
   const editor = useEditor();
   const t = useTranslator();
-  const drop = useDroppable({ kind: "row-slot", index }, { orientation: "horizontal" });
+  const drop = useDroppable({ kind: "row-slot", index }, { orientation: "vertical" });
 
   return (
-    <div ref={drop.setNode} className="eb-row-slot">
+    <div ref={drop.setNode} className={`eb-row-slot${drop.isOver ? " eb-row-slot--over" : ""}`}>
+      <div className="eb-row-slot__guideline" />
+      {drop.isOver && (
+        <div className="builder-drop-indicator builder-drop-indicator--row">
+          <div className="builder-drop-indicator__line" />
+          <span className="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+          <span className="builder-drop-indicator__pill">
+            <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 4 }}>add</span>
+            Insert row here
+          </span>
+          <span className="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+        </div>
+      )}
       <div className="eb-row-slot__add">
         <button
           type="button"

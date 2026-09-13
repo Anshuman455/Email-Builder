@@ -71,6 +71,18 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
         editor.select({ kind: "row", id: row.id });
       }}
     >
+      {drop.isOver && (
+        <div className={`builder-drop-indicator builder-drop-indicator--row ${drop.edge === "after" ? "builder-drop-indicator--end" : ""}`}>
+          <div className="builder-drop-indicator__line" />
+          <span className="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+          <span className="builder-drop-indicator__pill">
+            <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 4 }}>add</span>
+            Insert row {drop.edge === "after" ? "below" : "above"}
+          </span>
+          <span className="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+        </div>
+      )}
+
       {/* Left floating toolbar */}
       <div className="builder-row__toolbar" aria-label={`Row ${index + 1} actions`}>
         <button

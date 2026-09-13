@@ -33,6 +33,11 @@ const sheetStyle = computed(() => ({
   fontFamily: settings.value.fontFamily || "Arial, sans-serif",
   color: settings.value.textColor || "#333333",
 }));
+
+function isSlotOver(index: number) {
+  const over = dragState.value?.over;
+  return over?.kind === "row-slot" && over.index === index;
+}
 </script>
 
 <template>
@@ -111,9 +116,19 @@ const sheetStyle = computed(() => ({
         <template v-for="(row, index) in rows" :key="row.id">
           <!-- Row slot drop zone before row -->
           <div
-            v-drop="{ editor, data: { kind: 'row-slot', index } }"
-            class="eb-row-slot"
+            v-drop="{ editor, data: { kind: 'row-slot', index }, orientation: 'vertical' }"
+            :class="['eb-row-slot', isSlotOver(index) ? 'eb-row-slot--over' : '']"
           >
+            <div class="eb-row-slot__guideline" />
+            <div v-if="isSlotOver(index)" class="builder-drop-indicator builder-drop-indicator--row">
+              <div class="builder-drop-indicator__line" />
+              <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+              <span class="builder-drop-indicator__pill">
+                <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
+                Insert row here
+              </span>
+              <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+            </div>
             <div class="eb-row-slot__add">
               <button
                 type="button"
@@ -130,9 +145,19 @@ const sheetStyle = computed(() => ({
 
         <!-- Trailing slot after last row -->
         <div
-          v-drop="{ editor, data: { kind: 'row-slot', index: rows.length } }"
-          class="eb-row-slot"
+          v-drop="{ editor, data: { kind: 'row-slot', index: rows.length }, orientation: 'vertical' }"
+          :class="['eb-row-slot', isSlotOver(rows.length) ? 'eb-row-slot--over' : '']"
         >
+          <div class="eb-row-slot__guideline" />
+          <div v-if="isSlotOver(rows.length)" class="builder-drop-indicator builder-drop-indicator--row">
+            <div class="builder-drop-indicator__line" />
+            <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+            <span class="builder-drop-indicator__pill">
+              <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
+              Insert row here
+            </span>
+            <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+          </div>
           <div class="eb-row-slot__add">
             <button
               type="button"

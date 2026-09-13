@@ -30,6 +30,7 @@ const ghostLabel = computed(() => {
   if (a.kind === "block") return editor.blocks.get(a.blockId)?.label ?? a.blockId;
   if (a.kind === "palette") return editor.blocks.get(a.blockType)?.label ?? a.blockType;
   if (a.kind === "row") return "Row";
+  if (a.kind === "palette-row") return a.label ? `Row (${a.label})` : "Row";
   return "";
 });
 
@@ -41,7 +42,7 @@ const ghostIcon = computed(() => {
     const def = editor.blocks.get(type);
     if (def?.icon && def.icon in ICONS) return (ICONS as Record<string, string>)[def.icon] ?? "";
   }
-  if (a.kind === "row") return SOURCE_ICONS.row;
+  if (a.kind === "row" || a.kind === "palette-row") return SOURCE_ICONS.row;
   if (a.kind === "block") return SOURCE_ICONS.block;
   return "";
 });

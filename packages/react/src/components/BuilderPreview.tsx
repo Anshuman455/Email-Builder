@@ -18,15 +18,21 @@ export function BuilderPreview({ onClose }: BuilderPreviewProps) {
   const [mobile, setMobile] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  const [previewHtml, setPreviewHtml] = useState(() => {
+    try {
+      return editor.compile({ preview: true, sample: true }).html;
+    } catch {
+      return "";
+    }
+  });
+
   useEffect(() => {
-    const { html } = editor.compile({ preview: true, sample: true });
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-    if (!doc) return;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    try {
+      const { html } = editor.compile({ preview: true, sample: true });
+      setPreviewHtml(html);
+    } catch {
+      // Fallback
+    }
   }, [editor]);
 
   return (
@@ -69,6 +75,7 @@ export function BuilderPreview({ onClose }: BuilderPreviewProps) {
                 <iframe
                   ref={iframeRef}
                   title={t("preview.title")}
+                  srcDoc={previewHtml}
                   className={`eb-preview__frame${mobile ? " eb-preview__frame--mobile" : ""}`}
                 />
               </div>

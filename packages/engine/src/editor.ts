@@ -92,6 +92,7 @@ export interface EditorEvents {
   error: { error: unknown; where: string };
   "block:add": { block: Block; columnId: string };
   "block:remove": { blockId: string };
+  "row:add": { row: Row; index: number };
 }
 
 export interface EditorOptions {
@@ -278,14 +279,44 @@ export function createEditor(options: EditorOptions): Editor {
       return;
     }
 
+    /* A new row from the palette. */
+    if (source.kind === "palette-row") {
+      let index: number = doc.rows.length;
+      if (target.kind === "row-slot") {
+        index = target.index;
+      } else if (target.kind === "row") {
+        index = edge === "before" ? target.index : target.index + 1;
+      } else if (target.kind === "column") {
+        const found = findColumn(doc, target.columnId);
+        if (found) index = edge === "before" ? found.rowIndex : found.rowIndex + 1;
+      } else if (target.kind === "block") {
+        const found = findBlock(doc, target.blockId);
+        if (found) index = edge === "before" ? found.rowIndex : found.rowIndex + 1;
+      }
+      const { doc: withRow, row } = addRowOp(doc, source.spans, index);
+      commit(withRow, "row:add");
+      select({ kind: "row", id: row.id });
+      land(row.id);
+      events.emit("row:add", { row, index });
+      return;
+    }
+
     /* A whole row reordering. */
     if (source.kind === "row") {
       let index: number | null = null;
       if (target.kind === "row-slot") index = target.index;
       else if (target.kind === "row") index = edge === "before" ? target.index : target.index + 1;
+      else if (target.kind === "column") {
+        const found = findColumn(doc, target.columnId);
+        if (found) index = edge === "before" ? found.rowIndex : found.rowIndex + 1;
+      } else if (target.kind === "block") {
+        const found = findBlock(doc, target.blockId);
+        if (found) index = edge === "before" ? found.rowIndex : found.rowIndex + 1;
+      }
       if (index === null) return;
       commit(moveRowOp(doc, source.rowId, index), "row:move");
       land(source.rowId);
+      return;
     }
   }
 

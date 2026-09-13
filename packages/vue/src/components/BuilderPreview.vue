@@ -17,14 +17,21 @@ const t = useTranslator(editor);
 const mobile = ref(false);
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 
+let initialHtml = "";
+try {
+  initialHtml = editor.compile({ preview: true, sample: true }).html;
+} catch {
+  // Fallback
+}
+const previewHtml = ref(initialHtml);
+
 onMounted(() => {
-  const { html } = editor.compile({ preview: true, sample: true });
   const iframe = iframeRef.value;
   if (!iframe) return;
   const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
   if (!doc) return;
   doc.open();
-  doc.write(html);
+  doc.write(previewHtml.value);
   doc.close();
 });
 </script>
@@ -56,13 +63,15 @@ onMounted(() => {
           </button>
         </div>
         <div class="eb-modal__body eb-modal__body--flush">
-          <div class="eb-preview__stage" style="display:flex;justify-content:center;padding:20px;overflow:auto;">
-            <iframe
-              ref="iframeRef"
-              :title="t('preview.title')"
-              :class="['eb-preview__frame', mobile ? 'eb-preview__frame--mobile' : '']"
-              style="border:0;background:#fff;border-radius:4px;"
-            />
+          <div class="eb-preview">
+            <div class="eb-preview__stage">
+              <iframe
+                ref="iframeRef"
+                :title="t('preview.title')"
+                :srcdoc="previewHtml"
+                :class="['eb-preview__frame', mobile ? 'eb-preview__frame--mobile' : '']"
+              />
+            </div>
           </div>
         </div>
       </div>

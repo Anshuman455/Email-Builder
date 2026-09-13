@@ -24,6 +24,7 @@ import { createStore, type Store } from "./store";
 
 export type DragSource =
   | { kind: "palette"; blockType: string }
+  | { kind: "palette-row"; spans: number[]; label?: string }
   | { kind: "block"; blockId: string; columnId: string }
   | { kind: "row"; rowId: string };
 

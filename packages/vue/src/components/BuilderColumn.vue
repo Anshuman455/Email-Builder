@@ -61,7 +61,10 @@ const classes = computed(() =>
     :style="{ flex: `0 0 ${basis}`, maxWidth: basis }"
     @click.stop="editor.select({ kind: 'column', id: column.id })"
   >
-    <span v-if="empty" class="eb-column__hint">{{ t('canvas.emptyColumn') }}</span>
+    <div v-if="empty" :class="['builder-column__drop-zone', isOver ? 'builder-column__drop-zone--over' : '']">
+      <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
+      <span>{{ isOver ? "Drop block here" : (t('canvas.emptyColumn') || "Drop block here") }}</span>
+    </div>
     <BuilderBlock
       v-for="(block, bi) in column.blocks"
       :key="block.id"

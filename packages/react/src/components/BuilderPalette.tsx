@@ -74,12 +74,19 @@ function PaletteBlock({ block }: { block: { type: string; label: string; icon: s
   const isHtml = block.icon && block.icon.trim().startsWith("<");
 
   return (
-    <button
+    <div
       ref={drag.setNode}
-      type="button"
+      role="button"
+      tabIndex={0}
       className="palette-block"
       aria-label={`Add ${block.label} block`}
       onClick={add}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          add();
+        }
+      }}
     >
       <span className="palette-block__icon-wrap">
         {isHtml ? (
@@ -94,7 +101,42 @@ function PaletteBlock({ block }: { block: { type: string; label: string; icon: s
         )}
       </span>
       <span className="palette-block__label">{block.label}</span>
-    </button>
+    </div>
+  );
+}
+
+function PaletteRowItem({ item }: { item: { layout: string; label: string; spans: number[] } }) {
+  const editor = useEditor();
+  const drag = useDraggable({ kind: "palette-row", spans: item.spans, label: item.label });
+
+  const addRow = () => editor.addRow(item.spans);
+
+  return (
+    <div
+      ref={drag.setNode}
+      role="button"
+      tabIndex={0}
+      className={`palette-layout${drag.isDragging ? " palette-layout--dragging" : ""}`}
+      title={`Add or drag ${item.label} row`}
+      onClick={addRow}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          addRow();
+        }
+      }}
+    >
+      <div className="palette-layout__preview" aria-hidden="true">
+        {item.spans.map((span, sIndex) => (
+          <span
+            key={sIndex}
+            className="palette-layout__cell"
+            style={{ flex: span }}
+          />
+        ))}
+      </div>
+      <span className="palette-layout__label">{item.label}</span>
+    </div>
   );
 }
 
@@ -162,24 +204,7 @@ export function BuilderPalette({ className }: { className?: string }) {
               </div>
               <div className="palette-layouts">
                 {ROW_LAYOUTS.map((item) => (
-                  <button
-                    key={item.layout}
-                    type="button"
-                    className="palette-layout"
-                    title={`Add ${item.label} row`}
-                    onClick={() => editor.addRow(item.spans)}
-                  >
-                    <div className="palette-layout__preview">
-                      {item.spans.map((span, sIndex) => (
-                        <span
-                          key={sIndex}
-                          className="palette-layout__col"
-                          style={{ flex: span }}
-                        />
-                      ))}
-                    </div>
-                    <span className="palette-layout__label">{{ ...item }.label}</span>
-                  </button>
+                  <PaletteRowItem key={item.layout} item={item} />
                 ))}
               </div>
             </section>

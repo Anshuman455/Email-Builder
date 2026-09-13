@@ -13,6 +13,7 @@
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════ */
 
+:root,
 .eb-root {
   /* ── Surfaces ── */
   --eb-bg: #f6f7f9;
@@ -147,6 +148,7 @@
 /* Reduced motion is honoured globally rather than per-animation: everything here is decoration,
    and none of it carries meaning that survives only in the movement. */
 @media (prefers-reduced-motion: reduce) {
+
   .eb-root *,
   .eb-root *::before,
   .eb-root *::after {
@@ -165,7 +167,7 @@
   box-sizing: border-box;
 }
 
-.eb-root button {
+:where(.eb-root button) {
   font: inherit;
   color: inherit;
   background: none;
