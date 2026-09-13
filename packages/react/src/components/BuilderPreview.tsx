@@ -3,7 +3,7 @@
  * A modal showing the compiled HTML in an iframe. Rendered by the host via onPreview or used
  * inside the EmailBuilder's own overlay state. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useEditor, useTranslator } from "../context";
 import { CloseIcon, DesktopIcon, MobileIcon } from "../icons";
 import { Portal } from "./Portal";
@@ -16,7 +16,6 @@ export function BuilderPreview({ onClose }: BuilderPreviewProps) {
   const editor = useEditor();
   const t = useTranslator();
   const [mobile, setMobile] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const [previewHtml, setPreviewHtml] = useState(() => {
     try {
@@ -72,9 +71,12 @@ export function BuilderPreview({ onClose }: BuilderPreviewProps) {
           <div className="eb-modal__body eb-modal__body--flush">
             <div className="eb-preview">
               <div className="eb-preview__stage">
+                {/* `sandbox` without `allow-same-origin` or `allow-scripts`: the preview is an opaque
+                    origin that cannot run script or reach the host page, whatever the email holds.
+                    Popups stay allowed so links in the email still open in a new tab. */}
                 <iframe
-                  ref={iframeRef}
                   title={t("preview.title")}
+                  sandbox="allow-popups allow-popups-to-escape-sandbox"
                   srcDoc={previewHtml}
                   className={`eb-preview__frame${mobile ? " eb-preview__frame--mobile" : ""}`}
                 />

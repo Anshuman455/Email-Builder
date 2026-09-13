@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { BlockDefinition, MergeField, MergeSyntax } from "@email-builder/core";
-import type { Adapter, Editor } from "@email-builder/engine";
+import type { Adapter, Editor, ToolbarAction } from "@email-builder/engine";
 import { EditorProvider, type BuilderTheme } from "../context";
 import { useEmailBuilder } from "../hooks/useEmailBuilder";
 import { BuilderPalette } from "./BuilderPalette";
@@ -34,6 +34,8 @@ export interface EmailBuilderProps {
   showInspector?: boolean;
   /** Show the command bar (undo/redo, Desktop/Mobile, Code, Preview) above the email. Default true. */
   showToolbar?: boolean;
+  /** Extra icon buttons in the command bar — attachments, AI, anything. */
+  toolbarActions?: ToolbarAction[];
   className?: string;
 }
 
@@ -55,6 +57,7 @@ export function EmailBuilder({
   showPalette = true,
   showInspector = true,
   showToolbar = true,
+  toolbarActions,
   className,
 }: EmailBuilderProps) {
   const editor = useEmailBuilder({
@@ -144,6 +147,7 @@ export function EmailBuilder({
           {showPalette && <BuilderPalette />}
           <BuilderCanvas
             showToolbar={showToolbar}
+            toolbarActions={toolbarActions}
             onPreview={() => setOverlay("preview")}
             onCodeView={() => setOverlay("code")}
           />

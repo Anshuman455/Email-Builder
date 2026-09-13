@@ -7,11 +7,16 @@
  *
  * `v-model:device` binds the viewport; `preview` and `code` are emitted. */
 
+import { computed } from "vue";
+import type { ToolbarAction } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 import EbGlyph from "./EbGlyph.vue";
 
-defineProps<{ device: "desktop" | "mobile"; width: number }>();
+const props = withDefaults(
+  defineProps<{ device: "desktop" | "mobile"; width: number; actions?: ToolbarAction[] }>(),
+  { actions: () => [] },
+);
 
 const emit = defineEmits<{
   "update:device": [device: "desktop" | "mobile"];
@@ -26,6 +31,19 @@ const canUndo = useEditorSelector((state) => state.canUndo);
 const canRedo = useEditorSelector((state) => state.canRedo);
 
 const DEVICES = ["desktop", "mobile"] as const;
+
+/* Host buttons — attachments, AI, anything. "start" sits by undo/redo, everything else before Code. */
+const startActions = computed(() => props.actions.filter((action) => action.placement === "start"));
+const endActions = computed(() => props.actions.filter((action) => action.placement !== "start"));
+
+function actionClass(action: ToolbarAction) {
+  return [
+    "eb-commandbar__btn",
+    "eb-commandbar__btn--icon",
+    action.primary ? "eb-commandbar__btn--primary" : "",
+    action.active ? "eb-commandbar__btn--active" : "",
+  ];
+}
 </script>
 
 <template>
@@ -53,6 +71,19 @@ const DEVICES = ["desktop", "mobile"] as const;
           <EbGlyph name="redo" />
         </button>
       </div>
+      <button
+        v-for="action in startActions"
+        :key="action.id"
+        type="button"
+        :class="actionClass(action)"
+        :aria-label="action.label"
+        :title="action.label"
+        :aria-pressed="action.active"
+        :disabled="action.disabled"
+        @click="action.onClick(editor)"
+      >
+        <EbGlyph :name="action.icon" />
+      </button>
     </div>
 
     <div class="eb-commandbar__center">
@@ -75,6 +106,19 @@ const DEVICES = ["desktop", "mobile"] as const;
     </div>
 
     <div class="eb-commandbar__end">
+      <button
+        v-for="action in endActions"
+        :key="action.id"
+        type="button"
+        :class="actionClass(action)"
+        :aria-label="action.label"
+        :title="action.label"
+        :aria-pressed="action.active"
+        :disabled="action.disabled"
+        @click="action.onClick(editor)"
+      >
+        <EbGlyph :name="action.icon" />
+      </button>
       <button type="button" class="eb-commandbar__btn" :title="t('toolbar.code')" @click="emit('code')">
         <EbGlyph name="code" />
         <span class="eb-commandbar__label">{{ t("toolbar.code") }}</span>

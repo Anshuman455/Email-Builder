@@ -66,6 +66,7 @@ EditorProvider / provideEditor + useEditor    (context plumbing)
   showPalette?: boolean         // default true
   showInspector?: boolean       // default true
   showToolbar?: boolean         // default true — the command bar above the email
+  toolbarActions?: ToolbarAction[] // extra icon buttons in the command bar (attach, AI…)
   class/className?: string
 }
 ```

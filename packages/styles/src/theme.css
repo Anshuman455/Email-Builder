@@ -5360,3 +5360,85 @@ select.inspector-input {
   padding-top: 0;
   padding-bottom: 0;
 }
+
+/* ── Command bar: host action buttons ── */
+
+.eb-commandbar__btn--icon {
+  justify-content: center;
+  width: 34px;
+  padding: 0;
+}
+
+.eb-commandbar__btn--active {
+  border-color: var(--eb-accent);
+  background: var(--eb-accent-soft);
+  color: var(--eb-accent);
+}
+
+.eb-commandbar__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── HTML window (View / Import) ── */
+
+.eb-codeview {
+  height: min(88vh, 820px);
+}
+
+.eb-codeview .eb-modal__header .eb-segmented {
+  margin-right: 4px;
+}
+
+.eb-codeview .eb-code {
+  min-height: 100%;
+  tab-size: 2;
+}
+
+.eb-codeview__import {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eb-codeview__editor {
+  flex: 1;
+  min-height: 320px;
+  resize: none;
+  font-family: var(--eb-font-mono);
+  font-size: var(--eb-text-sm);
+  line-height: 1.6;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.eb-codeview__spacer {
+  flex: 1;
+}
+
+.eb-codeview .eb-modal__footer .eb-btn {
+  gap: 6px;
+}
+
+.eb-btn .eb-glyph {
+  font-size: 16px;
+}
+
+.eb-codeview__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--eb-text-md);
+  font-weight: 500;
+  color: var(--eb-text-secondary);
+  cursor: pointer;
+}
+
+.eb-codeview__option input {
+  accent-color: var(--eb-accent);
+}
+
+.eb-codeview__error {
+  color: var(--eb-danger);
+}

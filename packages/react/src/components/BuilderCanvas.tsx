@@ -13,6 +13,7 @@ import { useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { useIsDragging } from "../hooks/useDnd";
 import { BuilderRow } from "./BuilderRow";
+import type { ToolbarAction } from "@email-builder/engine";
 import { BuilderToolbar, type BuilderDevice } from "./BuilderToolbar";
 import { Glyph } from "./Glyph";
 
@@ -22,6 +23,8 @@ export interface BuilderCanvasProps {
   showToolbar?: boolean;
   onPreview?: () => void;
   onCodeView?: () => void;
+  /** Extra icon buttons in the command bar. */
+  toolbarActions?: ToolbarAction[];
 }
 
 function RowSlot({ index }: { index: number }) {
@@ -61,7 +64,7 @@ function RowSlot({ index }: { index: number }) {
   );
 }
 
-export function BuilderCanvas({ className, showToolbar = true, onPreview, onCodeView }: BuilderCanvasProps) {
+export function BuilderCanvas({ className, showToolbar = true, onPreview, onCodeView, toolbarActions }: BuilderCanvasProps) {
   const editor = useEditor();
   const t = useTranslator();
   const [device, setDevice] = useState<BuilderDevice>("desktop");
@@ -102,6 +105,7 @@ export function BuilderCanvas({ className, showToolbar = true, onPreview, onCode
           device={device}
           onDeviceChange={setDevice}
           width={targetWidth}
+          actions={toolbarActions}
           onPreview={onPreview}
           onCodeView={onCodeView}
         />

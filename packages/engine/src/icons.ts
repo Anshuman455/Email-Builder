@@ -25,6 +25,10 @@ export const EDITOR_ICONS = {
   edit: svg(`<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>`),
   undo: svg(`<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12H9"/>`),
   redo: svg(`<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h5"/>`),
+  check: svg(`<path d="m5 13 4 4L19 7"/>`),
+  close: svg(`<path d="M6 6l12 12M18 6 6 18"/>`),
+  file_download: svg(`<path d="M12 5v11"/><path d="m8 12 4 4 4-4"/><path d="M5 19h14"/>`),
+  attach_file: svg(`<path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/>`),
   file_upload: svg(`<path d="M12 16V5"/><path d="m8 9 4-4 4 4"/><path d="M5 19h14"/>`),
   search: svg(`<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>`),
   tune: svg(`<path d="M4 7h8M16 7h4M4 17h4M12 17h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>`),
@@ -79,8 +83,10 @@ export const EDITOR_ICONS = {
 
 export type EditorIconName = keyof typeof EDITOR_ICONS;
 
-/** SVG markup for an icon name. Unknown names — say a custom block's `icon` — fall back to a
- *  neutral tile instead of rendering nothing. */
+/** SVG markup for an icon name. A value that is already markup (`<svg …>`) — a host's own icon for
+ *  a toolbar action or custom block — is returned as-is; it comes from host code, not documents.
+ *  Unknown names fall back to a neutral tile instead of rendering nothing. */
 export function editorIcon(name: string): string {
+  if (name.trimStart().startsWith("<")) return name;
   return (EDITOR_ICONS as Record<string, string>)[name] ?? EDITOR_ICONS.widgets;
 }

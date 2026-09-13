@@ -6,6 +6,7 @@
 
 import { useEffect, useRef } from "react";
 import { asString } from "../../types";
+import { sanitizeHtml } from "@email-builder/core";
 
 export interface RichTextControlProps {
   value: unknown;
@@ -20,8 +21,10 @@ export function RichTextControl({ value, onChange, placeholder, label }: RichTex
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || node.innerHTML === html) return;
-    node.innerHTML = html;
+    /* The value comes from a stored document — clean it before it becomes live DOM. */
+    const clean = sanitizeHtml(html);
+    if (!node || node.innerHTML === clean) return;
+    node.innerHTML = clean;
   }, [html]);
 
   return (

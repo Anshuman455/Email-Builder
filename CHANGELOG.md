@@ -16,3 +16,10 @@ First public release.
 - **Themeable editor styles** in `@email-builder/styles`: every colour is a CSS variable, every rule
   is confined to the builder, and there's a cascade-layer build for apps that use `@layer`.
 - **Headless engine** in `@email-builder/engine`, including `editor.drop()` for custom drag UIs.
+- **HTML import and editing.** The Code window has View (formatted HTML, Copy, Download) and Import
+  (paste, drop or choose an `.html` file, or "Edit as HTML"), added to or replacing the email.
+  Imported HTML is converted into editable blocks (or kept as one HTML block on request). Also
+  available as `editor.importHtml()`, with `formatHtml()` exported from core.
+- **Custom command bar buttons** through `toolbarActions` — attachments, AI, anything — with
+  built-in icon names or your own SVG.
+- **Hardened sanitiser** and sandboxed preview iframe.

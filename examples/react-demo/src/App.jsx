@@ -7,6 +7,12 @@ import "./demo.css";
 
 const STORAGE_KEY = "email-builder.react.demo.v3";
 
+/* Host buttons in the command bar. Wire onClick to your own file picker or AI assistant. */
+const TOOLBAR_ACTIONS = [
+  { id: "attach", label: "Attach file", icon: "attach_file", onClick: () => window.alert("Open your app's file picker here.") },
+  { id: "ai", label: "Write with AI", icon: "auto_awesome", onClick: () => window.alert("Open your AI assistant here.") },
+];
+
 function load() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -34,6 +40,7 @@ export default function App() {
         mergeFields={GENERIC_FIELDS}
         mergeSyntax={SYNTAX.handlebars}
         adapter={adapter}
+        toolbarActions={TOOLBAR_ACTIONS}
         onSave={onSave}
         onReady={(editor) => {
           editorRef.current = editor;

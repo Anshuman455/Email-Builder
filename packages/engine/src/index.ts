@@ -34,3 +34,6 @@ export type {
   UploadedAsset,
 } from "./adapter";
 export { EDITOR_ICONS, editorIcon, type EditorIconName } from "./icons";
+export type { ToolbarAction } from "./actions";
+export { htmlToRows } from "./import";
+export type { ImportedRow } from "./import";

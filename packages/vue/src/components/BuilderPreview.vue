@@ -3,8 +3,7 @@
  *
  * Modal with the compiled HTML in an iframe. Mobile toggle switches between full-width and 375px. */
 
-import { onMounted, ref } from "vue";
-import { Teleport } from "vue";
+import { ref } from "vue";
 import { useEditor, useTranslator } from "../context";
 import { UI_ICONS } from "../icons";
 import EbIcon from "./EbIcon.vue";
@@ -16,7 +15,6 @@ const editor = useEditor();
 const t = useTranslator(editor);
 
 const mobile = ref(false);
-const iframeRef = ref<HTMLIFrameElement | null>(null);
 
 let initialHtml = "";
 try {
@@ -25,16 +23,6 @@ try {
   // Fallback
 }
 const previewHtml = ref(initialHtml);
-
-onMounted(() => {
-  const iframe = iframeRef.value;
-  if (!iframe) return;
-  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-  if (!doc) return;
-  doc.open();
-  doc.write(previewHtml.value);
-  doc.close();
-});
 </script>
 
 <template>
@@ -66,9 +54,12 @@ onMounted(() => {
         <div class="eb-modal__body eb-modal__body--flush">
           <div class="eb-preview">
             <div class="eb-preview__stage">
+              <!-- `sandbox` without `allow-same-origin` or `allow-scripts`: the preview is an opaque
+                   origin that cannot run script or reach the host page, whatever the email holds.
+                   Popups stay allowed so links in the email still open in a new tab. -->
               <iframe
-                ref="iframeRef"
                 :title="t('preview.title')"
+                sandbox="allow-popups allow-popups-to-escape-sandbox"
                 :srcdoc="previewHtml"
                 :class="['eb-preview__frame', mobile ? 'eb-preview__frame--mobile' : '']"
               />

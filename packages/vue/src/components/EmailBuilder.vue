@@ -8,7 +8,7 @@
 
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import type { BlockDefinition, MergeField, MergeSyntax } from "@email-builder/core";
-import type { Adapter } from "@email-builder/engine";
+import type { Adapter, ToolbarAction } from "@email-builder/engine";
 import { provideEditor, provideTheme } from "../context";
 import { useEmailBuilder } from "../composables";
 import BuilderPalette from "./BuilderPalette.vue";
@@ -33,6 +33,8 @@ const props = withDefaults(
     showPalette?: boolean;
     showInspector?: boolean;
     showToolbar?: boolean;
+    /** Extra icon buttons in the command bar — attachments, AI, anything. */
+    toolbarActions?: ToolbarAction[];
     class?: string;
     /* Vue callback props */
     onSave?: (doc: unknown) => Promise<void> | void;
@@ -128,7 +130,7 @@ const rootClasses = ["email-builder", "eb-root", props.class ?? ""].filter(Boole
   >
     <div class="email-builder__body eb-body">
       <BuilderPalette v-if="showPalette" />
-      <BuilderCanvas :show-toolbar="showToolbar" @preview="overlay = 'preview'" @code="overlay = 'code'" />
+      <BuilderCanvas :show-toolbar="showToolbar" :toolbar-actions="toolbarActions" @preview="overlay = 'preview'" @code="overlay = 'code'" />
       <BuilderInspector v-if="showInspector" />
     </div>
     <DragLayer />

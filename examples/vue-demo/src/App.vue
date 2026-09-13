@@ -13,6 +13,12 @@ import "./demo.css";
 
 const STORAGE_KEY = "email-builder.vue.demo.v3";
 
+/* Host buttons in the command bar. Wire onClick to your own file picker or AI assistant. */
+const toolbarActions = [
+  { id: "attach", label: "Attach file", icon: "attach_file", onClick: () => window.alert("Open your app's file picker here.") },
+  { id: "ai", label: "Write with AI", icon: "auto_awesome", onClick: () => window.alert("Open your AI assistant here.") },
+];
+
 function load() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -41,6 +47,7 @@ async function onSave(design) {
       :merge-fields="GENERIC_FIELDS"
       :merge-syntax="SYNTAX.handlebars"
       :adapter="adapter"
+      :toolbar-actions="toolbarActions"
       :autosave="{ debounceMs: 2000, maxWaitMs: 10000 }"
       :on-save="onSave"
       @ready="editor = $event"

@@ -10,11 +10,30 @@
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════ */
 
-/** Tags removed along with everything inside them. */
-const DROP_WITH_CONTENT = ["script", "iframe", "object", "embed", "applet", "noscript", "template", "base", "form"];
+/** Tags removed along with everything inside them.
+ *
+ *  `svg` and `math` are here on purpose: they switch the HTML parser into foreign-content mode,
+ *  which is where most parser-differential ("mXSS") payloads live, and animation elements inside
+ *  SVG can rewrite `href` after sanitising. No major email client renders inline SVG anyway. */
+const DROP_WITH_CONTENT = [
+  "script", "iframe", "frame", "frameset", "object", "embed", "applet", "noscript", "noembed",
+  "template", "base", "form", "svg", "math", "portal",
+];
 
 /** Tags removed, contents kept — `<link>` and `<meta>` inside a body are noise, not content. */
 const DROP_TAG_ONLY = ["link", "meta", "html", "head", "body", "title"];
+
+/** Attributes whose value is fetched or navigated to. */
+const URL_ATTRIBUTES = new Set(["href", "src", "xlink:href", "action", "formaction", "background", "poster", "cite", "longdesc", "lowsrc", "dynsrc"]);
+
+/** An opening or closing tag, with quoted attribute values honoured so `title=">"` cannot end the
+ *  tag early and push a real attribute out of the sanitiser's view. */
+const TAG = /<(\/?)([a-zA-Z][^\s/>]*)((?:"[^"]*"|'[^']*'|[^'">])*)>/g;
+
+/** One attribute inside a tag: name, then an optional value in any of the three HTML forms. */
+/* Unquoted values may contain `=` (HTML allows it), so `src=x/onerror=y` stays one value — the same
+   split the browser makes. Diverging from the browser here is how sanitisers get bypassed. */
+const ATTRIBUTE = /([^\s"'<>\/=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'<>`]+))?/g;
 
 export interface SanitizeOptions {
   /** Keep `<style>` blocks. On for the document shell, off for author-supplied HTML blocks. */
@@ -30,37 +49,87 @@ export function sanitizeHtml(input: string, options: SanitizeOptions = {}): stri
   const withContent = [...DROP_WITH_CONTENT, ...(options.drop ?? [])];
   if (!options.allowStyleTag) withContent.push("style");
 
-  for (const tag of withContent) {
-    html = html.replace(new RegExp(`<${tag}\\b[\\s\\S]*?<\\/${tag}\\s*>`, "gi"), "");
-    /* Unclosed or self-closed form of the same tag. */
-    html = html.replace(new RegExp(`<${tag}\\b[^>]*\\/?>`, "gi"), "");
+  /* Repeat until nothing changes: removing `<script>` from `<scr<script></script>ipt>` would
+     otherwise reassemble a tag that a single pass never looks at again. */
+  for (let pass = 0; pass < 10; pass++) {
+    const before = html;
+    for (const tag of withContent) {
+      html = html.replace(new RegExp(`<${tag}\\b[\\s\\S]*?<\\/${tag}\\s*>`, "gi"), "");
+      /* Unclosed or self-closed form of the same tag. */
+      html = html.replace(new RegExp(`<\\/?${tag}\\b[^>]*>`, "gi"), "");
+    }
+    for (const tag of DROP_TAG_ONLY) {
+      html = html.replace(new RegExp(`<\\/?${tag}\\b[^>]*>`, "gi"), "");
+    }
+    if (html === before) break;
   }
 
-  for (const tag of DROP_TAG_ONLY) {
-    html = html.replace(new RegExp(`<\\/?${tag}\\b[^>]*>`, "gi"), "");
-  }
-
-  /* Event handlers, quoted and bare. */
-  html = html.replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
-  html = html.replace(/\son[a-z]+\s*=\s*'[^']*'/gi, "");
-  html = html.replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, "");
-
-  /* Dangerous URL schemes in any attribute. `data:image/*` survives — inline images are legitimate
-     and common; every other `data:` does not. */
-  html = html.replace(/(href|src|xlink:href|action|background|poster)\s*=\s*(["']?)\s*(javascript|vbscript|file|data)\s*:/gi, (match, attr, quote, scheme) => {
-    if (String(scheme).toLowerCase() === "data" && /data\s*:\s*image\//i.test(match)) return match;
-    return `${attr}=${quote}#`;
+  /* Every remaining tag is rebuilt from its attributes: event handlers go, dangerous URLs are
+     neutralised, and styles are cleaned. Attributes that survive keep their original text, so
+     Outlook's VML (`xmlns:v`, `arcsize`) is untouched. */
+  html = html.replace(TAG, (_match, slash: string, name: string, rest: string) => {
+    if (slash) return `</${name}>`;
+    const selfClosing = /\/\s*$/.test(rest);
+    const kept: string[] = [];
+    for (const attribute of rest.matchAll(ATTRIBUTE)) {
+      const raw = attribute[0];
+      const attrName = attribute[1]!.toLowerCase();
+      const value = unquote(attribute[2]);
+      if (attrName.startsWith("on")) continue;
+      if (attrName === "srcdoc") continue;
+      if (URL_ATTRIBUTES.has(attrName) && value !== null && !isSafeUrl(value)) {
+        kept.push(`${attribute[1]}="#"`);
+        continue;
+      }
+      if (attrName === "style" && value !== null) {
+        kept.push(`style="${escapeQuotes(cleanCss(decodeEntities(value)))}"`);
+        continue;
+      }
+      kept.push(raw);
+    }
+    return `<${name}${kept.length ? " " + kept.join(" ") : ""}${selfClosing ? " /" : ""}>`;
   });
-
-  /* `expression()` and `url(javascript:…)` inside style attributes. */
-  html = html.replace(/style\s*=\s*"([^"]*)"/gi, (_m, css: string) => `style="${cleanCss(css)}"`);
-  html = html.replace(/style\s*=\s*'([^']*)'/gi, (_m, css: string) => `style='${cleanCss(css)}'`);
 
   /* `<!--[if …]>` must survive: the Outlook fallbacks depend on it. Every other comment goes, so a
      stored `<!-- <script> -->` cannot be un-commented downstream. */
   html = html.replace(/<!--(?!\[if|<!\[endif)[\s\S]*?-->/g, "");
 
   return html;
+}
+
+function unquote(value: string | undefined): string | null {
+  if (value === undefined) return null;
+  const first = value[0];
+  return (first === '"' || first === "'") && value.endsWith(first) ? value.slice(1, -1) : value;
+}
+
+function escapeQuotes(value: string): string {
+  return value.replace(/"/g, "&quot;");
+}
+
+const NAMED_ENTITIES: Record<string, string> = {
+  colon: ":", tab: "\t", newline: "\n", nbsp: "\u00a0", lpar: "(", rpar: ")", sol: "/", amp: "&", quot: '"', apos: "'", lt: "<", gt: ">",
+};
+
+/** What the browser will see after parsing: numeric and the scheme-relevant named entities. */
+function decodeEntities(value: string): string {
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);?/gi, (match, body: string) => {
+    if (body[0] === "#") {
+      const code = body[1] === "x" || body[1] === "X" ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+      return Number.isFinite(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : "";
+    }
+    return NAMED_ENTITIES[body.toLowerCase()] ?? match;
+  });
+}
+
+/** A URL is unsafe if, once decoded and stripped of the whitespace and control characters browsers
+ *  ignore inside a scheme, it starts with a script-capable scheme. Raster `data:image/*` is allowed
+ *  (inline images are common in email); SVG data URLs are not. */
+function isSafeUrl(value: string): boolean {
+  const normalised = decodeEntities(value).replace(/[\u0000-\u0020\u007f-\u009f]/g, "").toLowerCase();
+  if (/^(javascript|vbscript|file|livescript|mocha):/.test(normalised)) return false;
+  if (normalised.startsWith("data:")) return /^data:image\/(png|jpe?g|gif|webp|avif|bmp);/.test(normalised);
+  return true;
 }
 
 function cleanCss(css: string): string {

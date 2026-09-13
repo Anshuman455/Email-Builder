@@ -49,5 +49,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.14.5"
   }
 }

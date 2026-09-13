@@ -10,6 +10,8 @@
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════ */
 
+import { htmlToRows } from "./import";
+import { sanitizeHtml } from "@email-builder/core";
 import {
   addRow as addRowOp,
   backfill,
@@ -125,6 +127,18 @@ export interface Editor {
   getSchema(): FieldGroup[];
   /** Apply a drop exactly as a pointer drop would — for custom drag UIs, keyboard flows and tests. */
   drop(event: DropEvent): void;
+  /** Bring outside HTML into the design — pasted markup, an uploaded file, or an email's own HTML
+   *  edited by hand.
+   *
+   *  `as: "blocks"` (default) converts it into editable heading, text, image, button, list and
+   *  divider blocks, with side-by-side table cells as multi-column rows; page chrome such as
+   *  navigation, forms and icon fonts is dropped. `as: "html"` keeps it as one sanitised HTML block.
+   *  Where there is no DOM to parse with (Node), conversion falls back to `"html"`.
+   *
+   *  `mode: "append"` (default) adds the content after the existing rows; `"replace"` swaps the whole
+   *  design for it. One undo step either way. Returns the blocks added — empty when nothing usable
+   *  was found. */
+  importHtml(html: string, options?: { mode?: "append" | "replace"; as?: "blocks" | "html" }): Block[];
   compile(options?: CompileOptions): CompileResult;
   preflight(): PreflightIssue[];
 
@@ -394,6 +408,40 @@ export function createEditor(options: EditorOptions): Editor {
     },
 
     drop: (event) => applyDrop(event),
+
+    importHtml(html, importOptions = {}) {
+      const replace = importOptions.mode === "replace";
+      let rows = importOptions.as === "html" ? null : htmlToRows(html, blocks);
+
+      if (!rows) {
+        const body = /<body\b[^>]*>([\s\S]*)<\/body>/i.exec(html);
+        const markup = sanitizeHtml((body ? body[1]! : html).trim());
+        const block = markup.trim() ? blocks.create("html") : null;
+        if (!block) return [];
+        block.content = { ...block.content, html: markup };
+        rows = [{ spans: [1], columns: [[block]] }];
+      }
+      if (!rows.length) return [];
+
+      let doc = replace ? { ...history.present, rows: [] } : history.present;
+      const added: Block[] = [];
+      for (const imported of rows) {
+        const { doc: withRow, row } = addRowOp(doc, imported.spans, doc.rows.length);
+        doc = withRow;
+        imported.columns.forEach((column, columnIndex) => {
+          column.forEach((block, blockIndex) => {
+            doc = insertBlockOp(doc, block, row.columns[columnIndex]!.id, blockIndex);
+            added.push(block);
+          });
+        });
+      }
+      if (!added.length) return [];
+
+      commit(doc, "block:add", replace ? "import:replace" : "import:append");
+      select({ kind: "block", id: added[0]!.id });
+      land(added[0]!.id);
+      return added;
+    },
 
     compile: (compileOptions) => compile(history.present, { blocks, merge }, compileOptions),
     preflight: () => preflightDoc(history.present, { blocks, merge }),

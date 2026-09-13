@@ -32,6 +32,7 @@ import ListControl from "./fields/ListControl.vue";
 import MergeMenu from "./fields/MergeMenu.vue";
 import PaddingControl from "./fields/PaddingControl.vue";
 import RecordControl from "./fields/RecordControl.vue";
+import { sanitizeHtml } from "@email-builder/core";
 
 const props = defineProps<{ field: Field; value: unknown; block?: Block | null }>();
 const emit = defineEmits<{
@@ -109,7 +110,8 @@ const paint = () => {
   const element = rich.value;
   if (!element) return;
   if (document.activeElement === element) return;
-  const next = text.value;
+  /* The value comes from a stored document — clean it before it becomes live DOM. */
+  const next = sanitizeHtml(text.value);
   if (element.innerHTML !== next) element.innerHTML = next;
 };
 
@@ -144,7 +146,7 @@ function insertToken(token: string) {
       change(editable.innerHTML);
       return;
     }
-    editable.innerHTML = text.value + token;
+    editable.innerHTML = sanitizeHtml(text.value + token);
     change(editable.innerHTML);
     return;
   }

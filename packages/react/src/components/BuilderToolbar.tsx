@@ -4,6 +4,7 @@
  * middle, output actions on the right. It lives in the canvas column rather than across the top of
  * the page, so the builder brings no app header of its own into a host's layout. */
 
+import type { ToolbarAction } from "@email-builder/engine";
 import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { Glyph } from "./Glyph";
@@ -17,16 +18,42 @@ export interface BuilderToolbarProps {
   width: number;
   onPreview?: () => void;
   onCodeView?: () => void;
+  /** Host buttons — attachments, AI, anything. See `ToolbarAction`. */
+  actions?: ToolbarAction[];
   className?: string;
 }
 
+const NO_ACTIONS: ToolbarAction[] = [];
+
 const DEVICES: BuilderDevice[] = ["desktop", "mobile"];
 
-export function BuilderToolbar({ device, onDeviceChange, width, onPreview, onCodeView, className }: BuilderToolbarProps) {
+export function BuilderToolbar({ device, onDeviceChange, width, onPreview, onCodeView, actions = NO_ACTIONS, className }: BuilderToolbarProps) {
   const editor = useEditor();
   const t = useTranslator();
   const canUndo = useEditorSelector((state) => state.canUndo);
   const canRedo = useEditorSelector((state) => state.canRedo);
+
+  const renderAction = (action: ToolbarAction) => (
+    <button
+      key={action.id}
+      type="button"
+      className={[
+        "eb-commandbar__btn",
+        "eb-commandbar__btn--icon",
+        action.primary ? "eb-commandbar__btn--primary" : "",
+        action.active ? "eb-commandbar__btn--active" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label={action.label}
+      title={action.label}
+      aria-pressed={action.active}
+      disabled={action.disabled}
+      onClick={() => action.onClick(editor)}
+    >
+      <Glyph name={action.icon} />
+    </button>
+  );
 
   return (
     <div
@@ -58,6 +85,7 @@ export function BuilderToolbar({ device, onDeviceChange, width, onPreview, onCod
             <Glyph name="redo" />
           </button>
         </div>
+        {actions.filter((action) => action.placement === "start").map(renderAction)}
       </div>
 
       <div className="eb-commandbar__center">
@@ -81,6 +109,7 @@ export function BuilderToolbar({ device, onDeviceChange, width, onPreview, onCod
       </div>
 
       <div className="eb-commandbar__end">
+        {actions.filter((action) => action.placement !== "start").map(renderAction)}
         {onCodeView && (
           <button type="button" className="eb-commandbar__btn" title={t("toolbar.code")} onClick={onCodeView}>
             <Glyph name="code" />

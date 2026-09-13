@@ -14,9 +14,10 @@ import { useDragState, useEditorSelector } from "../composables";
 import { vDrop } from "../directives";
 import BuilderRow from "./BuilderRow.vue";
 import BuilderToolbar from "./BuilderToolbar.vue";
+import type { ToolbarAction } from "@email-builder/engine";
 import EbGlyph from "./EbGlyph.vue";
 
-const props = withDefaults(defineProps<{ class?: string; showToolbar?: boolean }>(), { showToolbar: true });
+const props = withDefaults(defineProps<{ class?: string; showToolbar?: boolean; toolbarActions?: ToolbarAction[] }>(), { showToolbar: true });
 const emit = defineEmits<{ preview: []; code: [] }>();
 
 const editor = useEditor();
@@ -54,6 +55,7 @@ function isSlotOver(index: number) {
       v-if="showToolbar"
       v-model:device="device"
       :width="targetWidth"
+      :actions="toolbarActions"
       @preview="emit('preview')"
       @code="emit('code')"
     />

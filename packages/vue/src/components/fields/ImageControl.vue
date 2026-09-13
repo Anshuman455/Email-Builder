@@ -38,7 +38,7 @@ async function send(selected: File | undefined | null) {
   if (!adapter || !selected) return;
   if (adapter.maxBytes && selected.size > adapter.maxBytes) {
     const limit = `${Math.round(adapter.maxBytes / 1024)} KB`;
-    editor.adapter.notify?.error?.(`${t("field.imageTooLarge", "That file is over the limit of")} ${limit}.`);
+    editor.adapter.notify?.error?.(`${t("field.imageTooLarge")} (${limit}).`);
     return;
   }
   uploading.value = true;

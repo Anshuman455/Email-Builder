@@ -115,6 +115,7 @@ export {
 } from "./util/html";
 export { createId, rowId, colId, blockId } from "./util/id";
 export { clone, patch } from "./util/clone";
+export { formatHtml } from "./util/format";
 
 /* ── One-call setup ──────────────────────────────────────────────────────────────────────────
  *
