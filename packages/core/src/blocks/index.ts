@@ -5,7 +5,12 @@ import { buttonBlock, socialBlock } from "./action";
 import { cardBlock } from "./card";
 import { contentSlotBlock, dividerBlock, footerBlock, htmlBlock, spacerBlock } from "./structure";
 
-/** Everything the library ships with. Nothing here knows what industry it is being used in. */
+/** The primitives registered by default. Nothing here knows what industry it is being used in.
+ *
+ *  Composite, opinionated blocks — `cardBlock`, `footerBlock` — are exported but not registered:
+ *  most apps want their own version, and a palette full of someone else's compositions is noise.
+ *  Opt in with `setup({ blocks: [cardBlock, footerBlock] })`, or build your own with
+ *  `defineBlock` (see docs/EXTENDING.md). */
 export const BUILTIN_BLOCKS: BlockDefinition[] = [
   contentSlotBlock,
   textBlock,
@@ -14,12 +19,10 @@ export const BUILTIN_BLOCKS: BlockDefinition[] = [
   imageBlock,
   videoBlock,
   buttonBlock,
-  cardBlock,
   socialBlock,
   dividerBlock,
   spacerBlock,
   htmlBlock,
-  footerBlock,
 ];
 
 export const BLOCK_GROUP_ORDER = ["Content", "Media", "Layout", "Advanced"];

@@ -181,18 +181,39 @@ No HTTP client, no toast library, no router, no socket is imported anywhere in t
 
 ## Theming
 
-One stylesheet, every class prefixed `.eb-`, everything scoped under `.eb-root`. It cannot collide
-with Bootstrap or Tailwind in either direction. Theme by overriding custom properties:
+Every class is prefixed `.eb-`, and the build confines every rule to `.eb-root` (each selector
+gets a zero-specificity `:where(.eb-root, .eb-root *)`), so the stylesheet cannot restyle your app
+and generic names like `.palette-block` in your app are never touched. No icon font or web font is
+required: icons are inline SVG, and the font is whatever you set.
+
+**All colours, radii, shadows, fonts and z-indexes live in one file —
+[`packages/styles/src/variables.css`](packages/styles/src/variables.css).** No other stylesheet
+contains a colour literal; the build fails if one appears. To match your app, override the
+semantic variables:
 
 ```css
-.eb-root {
-  --eb-accent: #7c3aed;
-  --eb-radius: 10px;
-  --eb-font: "Inter", system-ui, sans-serif;
+/* Higher specificity than the builder's own `.eb-root` declaration, so load order doesn't matter */
+.my-app .eb-root {
+  --eb-accent: var(--app-primary);      /* hovers, rings and soft fills are derived from it */
+  --eb-surface: var(--app-card);
+  --eb-border: var(--app-border);
+  --eb-text: var(--app-foreground);
+  --eb-radius: var(--app-radius);
+  --eb-font: inherit;                   /* use the host's font */
 }
 ```
 
+Only use the semantic tier (`--eb-surface`, `--eb-text-*`, `--eb-border*`, `--eb-accent*`,
+`--eb-danger*`, `--eb-shadow-color` …). The palette tier (`--eb-gray-500`, `--eb-brand-600` …) is
+internal.
+
+If your app manages cascade layers, import `@email-builder/styles/layered` instead: the same rules
+inside `@layer email-builder`, so any unlayered style of yours wins.
+
 Dark mode: `theme="dark"`, or `theme="auto"` to follow the OS.
+
+**Full guide:** [docs/THEMING.md](docs/THEMING.md) covers where to put overrides, every variable, recipes for
+shadcn/ui, MUI, Bootstrap and Tailwind, dark mode, and troubleshooting.
 
 ---
 

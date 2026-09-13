@@ -11,8 +11,8 @@
     "build": "npm run build -w @email-builder/core && npm run build -w @email-builder/engine && npm run build -w @email-builder/styles && npm run build -w @email-builder/react && npm run build -w @email-builder/vue",
     "dev:react": "npm run dev -w react-demo",
     "dev:vue": "npm run dev -w vue-demo",
-    "test": "npm run test -w @email-builder/core",
-    "typecheck": "tsc -b --pretty"
+    "test": "npm run test -w @email-builder/core && npm run test -w @email-builder/engine",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p packages/engine && tsc --noEmit -p packages/react && vue-tsc --noEmit -p packages/vue"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

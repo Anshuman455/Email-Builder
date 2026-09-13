@@ -6,18 +6,16 @@
  *
  * Emits: save, change, ready, select. */
 
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import type { BlockDefinition, MergeField, MergeSyntax } from "@email-builder/core";
 import type { Adapter } from "@email-builder/engine";
-import { provideEditor } from "../context";
+import { provideEditor, provideTheme } from "../context";
 import { useEmailBuilder } from "../composables";
-import BuilderToolbar from "./BuilderToolbar.vue";
 import BuilderPalette from "./BuilderPalette.vue";
 import BuilderCanvas from "./BuilderCanvas.vue";
 import BuilderInspector from "./BuilderInspector.vue";
 import BuilderPreview from "./BuilderPreview.vue";
 import BuilderCodeView from "./BuilderCodeView.vue";
-import PreflightPanel from "./PreflightPanel.vue";
 import DragLayer from "./DragLayer.vue";
 import { isTypingTarget } from "../util";
 
@@ -32,11 +30,6 @@ const props = withDefaults(
     mode?: string;
     theme?: "light" | "dark" | "auto";
     autosave?: { debounceMs?: number; maxWaitMs?: number; enabled?: boolean };
-    title?: string;
-    subtitle?: string;
-    badgeLabel?: string;
-    backLabel?: string;
-    onBack?: () => void;
     showPalette?: boolean;
     showInspector?: boolean;
     showToolbar?: boolean;
@@ -51,10 +44,6 @@ const props = withDefaults(
     showPalette: true,
     showInspector: true,
     showToolbar: true,
-    title: "Monthly Newsletter",
-    subtitle: "A monthly update for our community",
-    badgeLabel: "EMAIL TEMPLATE",
-    backLabel: "Templates",
   },
 );
 
@@ -63,7 +52,6 @@ const emit = defineEmits<{
   change: [doc: unknown];
   ready: [editor: any];
   select: [selection: any];
-  back: [];
 }>();
 
 const editor = useEmailBuilder({
@@ -79,6 +67,9 @@ const editor = useEmailBuilder({
   onChange: props.onChange ?? ((doc) => emit("change", doc)),
   onReady: props.onReady ?? ((e) => emit("ready", e)),
 });
+
+/* Teleported overlays (EbPortal) read the theme to re-declare it outside the root element. */
+provideTheme(toRef(props, "theme"));
 
 /* Listen to select events so the host can react */
 editor.events.on("select", (sel) => emit("select", sel));
@@ -122,7 +113,7 @@ function onKeyDown(event: KeyboardEvent) {
 onMounted(() => rootRef.value?.addEventListener("keydown", onKeyDown));
 onUnmounted(() => rootRef.value?.removeEventListener("keydown", onKeyDown));
 
-type Overlay = "preview" | "code" | "preflight" | null;
+type Overlay = "preview" | "code" | null;
 const overlay = ref<Overlay>(null);
 
 const rootClasses = ["email-builder", "eb-root", props.class ?? ""].filter(Boolean).join(" ");
@@ -135,26 +126,13 @@ const rootClasses = ["email-builder", "eb-root", props.class ?? ""].filter(Boole
     :data-eb-theme="theme"
     tabindex="-1"
   >
-    <BuilderToolbar
-      v-if="showToolbar"
-      :title="title"
-      :subtitle="subtitle"
-      :badge-label="badgeLabel"
-      :back-label="backLabel"
-      :on-back="onBack"
-      @preview="overlay = 'preview'"
-      @code="overlay = 'code'"
-      @preflight="overlay = 'preflight'"
-      @back="emit('back')"
-    />
     <div class="email-builder__body eb-body">
       <BuilderPalette v-if="showPalette" />
-      <BuilderCanvas />
+      <BuilderCanvas :show-toolbar="showToolbar" @preview="overlay = 'preview'" @code="overlay = 'code'" />
       <BuilderInspector v-if="showInspector" />
     </div>
     <DragLayer />
     <BuilderPreview v-if="overlay === 'preview'" @close="overlay = null" />
     <BuilderCodeView v-if="overlay === 'code'" @close="overlay = null" />
-    <PreflightPanel v-if="overlay === 'preflight'" @close="overlay = null" />
   </div>
 </template>

@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import type { FieldGroup } from "@email-builder/core";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { BuilderField } from "./BuilderField";
 import {
@@ -23,6 +23,7 @@ import {
   encodeLayout,
   decodeLayout,
 } from "../schemas";
+import { Glyph } from "./Glyph";
 
 const GLOBAL_FONTS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
@@ -55,6 +56,7 @@ const ICONS_MAP: Record<string, string> = {
 
 export function BuilderInspector({ className }: { className?: string }) {
   const editor = useEditor();
+  const t = useTranslator();
   const selection = useEditorSelector((state) => state.selection);
   const selectionKind = selection?.kind ?? null;
   const settings = useEditorSelector((state) => state.document.settings);
@@ -102,13 +104,13 @@ export function BuilderInspector({ className }: { className?: string }) {
   const inspectorClasses = ["builder-inspector", "eb-inspector", className ?? ""].filter(Boolean).join(" ");
 
   return (
-    <aside className={inspectorClasses} aria-label="Inspector">
+    <aside className={inspectorClasses} aria-label={t("inspector.label")}>
       {/* Email Settings Header */}
       {(!selectionKind || selectionKind === "settings") && (
         <header className="builder-inspector__header">
           <div className="builder-inspector__header-title">
             <span className="builder-inspector__header-icon">
-              <span className="material-symbols-outlined" aria-hidden="true">tune</span>
+              <Glyph name="tune" />
             </span>
             <div>
               <span className="builder-inspector__title-main">Email Settings</span>
@@ -123,9 +125,7 @@ export function BuilderInspector({ className }: { className?: string }) {
         <header className="builder-inspector__header">
           <div className="builder-inspector__header-title">
             <span className="builder-inspector__header-icon">
-              <span className="material-symbols-outlined" aria-hidden="true">
-                {ICONS_MAP[selectedBlock.type] || "widgets"}
-              </span>
+              <Glyph name={ICONS_MAP[selectedBlock.type] || "widgets"} />
             </span>
             <div>
               <span className="builder-inspector__title-main">
@@ -137,10 +137,10 @@ export function BuilderInspector({ className }: { className?: string }) {
           <button
             type="button"
             className="builder-inspector__nav-btn"
-            title="Back to Email Settings"
+            title={t("inspector.back")}
             onClick={deselect}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            <Glyph name="arrow_back" />
             <span>All Settings</span>
           </button>
         </header>
@@ -151,7 +151,7 @@ export function BuilderInspector({ className }: { className?: string }) {
         <header className="builder-inspector__header">
           <div className="builder-inspector__header-title">
             <span className="builder-inspector__header-icon">
-              <span className="material-symbols-outlined" aria-hidden="true">table_rows</span>
+              <Glyph name="table_rows" />
             </span>
             <div>
               <span className="builder-inspector__title-main">Row Settings</span>
@@ -161,10 +161,10 @@ export function BuilderInspector({ className }: { className?: string }) {
           <button
             type="button"
             className="builder-inspector__nav-btn"
-            title="Back to Email Settings"
+            title={t("inspector.back")}
             onClick={deselect}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            <Glyph name="arrow_back" />
             <span>All Settings</span>
           </button>
         </header>
@@ -178,21 +178,19 @@ export function BuilderInspector({ className }: { className?: string }) {
             {/* Canvas Quick Tips */}
             <div className="inspector-legend">
               <div className="inspector-legend__header">
-                <span className="material-symbols-outlined inspector-legend__header-icon" aria-hidden="true">
-                  lightbulb
-                </span>
+                <Glyph name="lightbulb" className="inspector-legend__header-icon" />
                 <span className="inspector-legend__header-title">Canvas Quick Tips</span>
               </div>
               <div className="inspector-legend__items">
                 <div className="inspector-legend__item">
                   <span className="inspector-legend__item-badge">
-                    <span className="material-symbols-outlined" aria-hidden="true">widgets</span>
+                    <Glyph name="widgets" />
                   </span>
                   <span>Click any block to customize its text, styling &amp; colors</span>
                 </div>
                 <div className="inspector-legend__item">
                   <span className="inspector-legend__item-badge">
-                    <span className="material-symbols-outlined" aria-hidden="true">table_rows</span>
+                    <Glyph name="table_rows" />
                   </span>
                   <span>Click outer space around content to edit row layout</span>
                 </div>
@@ -203,39 +201,39 @@ export function BuilderInspector({ className }: { className?: string }) {
             <details className="eb-group" open>
               <summary className="eb-group__header">
                 Brand
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                <Glyph name="expand_more" style={{ fontSize: 18 }} />
               </summary>
               <div className="eb-group__body" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "12px 16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 4, color: "#374151" }}>Font</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 4, color: "var(--eb-text-secondary)" }}>Font</label>
                   <select
                     value={settings.fontFamily || GLOBAL_FONTS[0]!.value}
-                    style={{ width: "100%", height: 36, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 10px", fontSize: 13, background: "#fff" }}
+                    style={{ width: "100%", height: 36, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 10px", fontSize: 13, background: "var(--eb-surface)" }}
                     onChange={(e) => updateSettings({ fontFamily: e.target.value })}
                   >
                     {GLOBAL_FONTS.map((f) => (
                       <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
                   </select>
-                  <span style={{ display: "block", fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
+                  <span style={{ display: "block", fontSize: 11, color: "var(--eb-text-subtle)", marginTop: 4 }}>
                     Web-safe fonts only — custom fonts do not render in Outlook.
                   </span>
                 </div>
 
                 {/* Text Colour */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#374151" }}>Text colour</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--eb-text-secondary)" }}>Text colour</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <input
                       type="color"
                       value={settings.textColor || "#333333"}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #e5e7eb", padding: 0, cursor: "pointer" }}
+                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--eb-border)", padding: 0, cursor: "pointer" }}
                       onChange={(e) => updateSettings({ textColor: e.target.value })}
                     />
                     <input
                       type="text"
                       value={settings.textColor || "#333333"}
-                      style={{ flex: 1, height: 32, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
+                      style={{ flex: 1, height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
                       onChange={(e) => updateSettings({ textColor: e.target.value })}
                     />
                   </div>
@@ -249,7 +247,7 @@ export function BuilderInspector({ className }: { className?: string }) {
                           height: 18,
                           borderRadius: "50%",
                           backgroundColor: c,
-                          border: "1px solid rgba(0,0,0,0.1)",
+                          border: "1px solid color-mix(in srgb, var(--eb-shadow-color) 10%, transparent)",
                           cursor: "pointer",
                         }}
                         onClick={() => updateSettings({ textColor: c })}
@@ -260,18 +258,18 @@ export function BuilderInspector({ className }: { className?: string }) {
 
                 {/* Link Colour */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#374151" }}>Link colour</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--eb-text-secondary)" }}>Link colour</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <input
                       type="color"
                       value={settings.linkColor || "#0066cc"}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #e5e7eb", padding: 0, cursor: "pointer" }}
+                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--eb-border)", padding: 0, cursor: "pointer" }}
                       onChange={(e) => updateSettings({ linkColor: e.target.value })}
                     />
                     <input
                       type="text"
                       value={settings.linkColor || "#0066cc"}
-                      style={{ flex: 1, height: 32, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
+                      style={{ flex: 1, height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
                       onChange={(e) => updateSettings({ linkColor: e.target.value })}
                     />
                   </div>
@@ -285,7 +283,7 @@ export function BuilderInspector({ className }: { className?: string }) {
                           height: 18,
                           borderRadius: "50%",
                           backgroundColor: c,
-                          border: "1px solid rgba(0,0,0,0.1)",
+                          border: "1px solid color-mix(in srgb, var(--eb-shadow-color) 10%, transparent)",
                           cursor: "pointer",
                         }}
                         onClick={() => updateSettings({ linkColor: c })}
@@ -300,39 +298,39 @@ export function BuilderInspector({ className }: { className?: string }) {
             <details className="eb-group">
               <summary className="eb-group__header">
                 Background
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                <Glyph name="expand_more" style={{ fontSize: 18 }} />
               </summary>
               <div className="eb-group__body" style={{ display: "flex", flexDirection: "column", gap: 12, padding: "12px 16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#374151" }}>Page background</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--eb-text-secondary)" }}>Page background</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <input
                       type="color"
                       value={settings.backgroundColor || "#f4f4f5"}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #e5e7eb", padding: 0, cursor: "pointer" }}
+                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--eb-border)", padding: 0, cursor: "pointer" }}
                       onChange={(e) => updateSettings({ backgroundColor: e.target.value })}
                     />
                     <input
                       type="text"
                       value={settings.backgroundColor || "#f4f4f5"}
-                      style={{ flex: 1, height: 32, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
+                      style={{ flex: 1, height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
                       onChange={(e) => updateSettings({ backgroundColor: e.target.value })}
                     />
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#374151" }}>Email background</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--eb-text-secondary)" }}>Email background</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <input
                       type="color"
                       value={settings.contentBackgroundColor || "#ffffff"}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #e5e7eb", padding: 0, cursor: "pointer" }}
+                      style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--eb-border)", padding: 0, cursor: "pointer" }}
                       onChange={(e) => updateSettings({ contentBackgroundColor: e.target.value })}
                     />
                     <input
                       type="text"
                       value={settings.contentBackgroundColor || "#ffffff"}
-                      style={{ flex: 1, height: 32, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
+                      style={{ flex: 1, height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 8px", fontFamily: "monospace", fontSize: 12 }}
                       onChange={(e) => updateSettings({ contentBackgroundColor: e.target.value })}
                     />
                   </div>
@@ -344,23 +342,23 @@ export function BuilderInspector({ className }: { className?: string }) {
             <details className="eb-group" open>
               <summary className="eb-group__header">
                 Canvas Sizing &amp; Width
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                <Glyph name="expand_more" style={{ fontSize: 18 }} />
               </summary>
               <div className="eb-group__body" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "12px 16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 4, color: "#374151" }}>Width</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 4, color: "var(--eb-text-secondary)" }}>Width</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <input
                       type="number"
                       value={settings.contentWidth || 600}
                       min={320}
                       max={800}
-                      style={{ width: "100%", height: 36, border: "1px solid #e5e7eb", borderRadius: 6, padding: "0 10px", fontSize: 13 }}
+                      style={{ width: "100%", height: 36, border: "1px solid var(--eb-border)", borderRadius: 6, padding: "0 10px", fontSize: 13 }}
                       onChange={(e) => updateSettings({ contentWidth: Number(e.target.value) })}
                     />
-                    <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 500 }}>px</span>
+                    <span style={{ fontSize: 12, color: "var(--eb-text-muted)", fontWeight: 500 }}>px</span>
                   </div>
-                  <span style={{ display: "block", fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
+                  <span style={{ display: "block", fontSize: 11, color: "var(--eb-text-subtle)", marginTop: 4 }}>
                     600px is what every email client agrees on. Change it only if you know why.
                   </span>
                 </div>
@@ -368,57 +366,55 @@ export function BuilderInspector({ className }: { className?: string }) {
                 {/* Padding TRBL */}
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Padding</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--eb-text-secondary)" }}>Padding</label>
                     <button
                       type="button"
                       style={{
                         border: "none",
                         background: "none",
                         cursor: "pointer",
-                        color: isPaddingLinked ? "#2563eb" : "#9ca3af",
+                        color: isPaddingLinked ? "var(--eb-accent)" : "var(--eb-text-subtle)",
                       }}
                       title={isPaddingLinked ? "Unlink padding sides" : "Link all padding sides"}
                       onClick={() => setIsPaddingLinked(!isPaddingLinked)}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                        {isPaddingLinked ? "link" : "link_off"}
-                      </span>
+                      <Glyph name={isPaddingLinked ? "link" : "link_off"} style={{ fontSize: 16 }} />
                     </button>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, textAlign: "center" }}>
                     <div>
-                      <span style={{ fontSize: 10, color: "#9ca3af", display: "block" }}>T</span>
+                      <span style={{ fontSize: 10, color: "var(--eb-text-subtle)", display: "block" }}>T</span>
                       <input
                         type="number"
                         value={(settings as any)?.padding?.top ?? 24}
-                        style={{ width: "100%", height: 32, border: "1px solid #e5e7eb", borderRadius: 6, textAlign: "center", fontSize: 12 }}
+                        style={{ width: "100%", height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, textAlign: "center", fontSize: 12 }}
                         onChange={(e) => updatePadding("top", Number(e.target.value))}
                       />
                     </div>
                     <div>
-                      <span style={{ fontSize: 10, color: "#9ca3af", display: "block" }}>R</span>
+                      <span style={{ fontSize: 10, color: "var(--eb-text-subtle)", display: "block" }}>R</span>
                       <input
                         type="number"
                         value={(settings as any)?.padding?.right ?? 24}
-                        style={{ width: "100%", height: 32, border: "1px solid #e5e7eb", borderRadius: 6, textAlign: "center", fontSize: 12 }}
+                        style={{ width: "100%", height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, textAlign: "center", fontSize: 12 }}
                         onChange={(e) => updatePadding("right", Number(e.target.value))}
                       />
                     </div>
                     <div>
-                      <span style={{ fontSize: 10, color: "#9ca3af", display: "block" }}>B</span>
+                      <span style={{ fontSize: 10, color: "var(--eb-text-subtle)", display: "block" }}>B</span>
                       <input
                         type="number"
                         value={(settings as any)?.padding?.bottom ?? 24}
-                        style={{ width: "100%", height: 32, border: "1px solid #e5e7eb", borderRadius: 6, textAlign: "center", fontSize: 12 }}
+                        style={{ width: "100%", height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, textAlign: "center", fontSize: 12 }}
                         onChange={(e) => updatePadding("bottom", Number(e.target.value))}
                       />
                     </div>
                     <div>
-                      <span style={{ fontSize: 10, color: "#9ca3af", display: "block" }}>L</span>
+                      <span style={{ fontSize: 10, color: "var(--eb-text-subtle)", display: "block" }}>L</span>
                       <input
                         type="number"
                         value={(settings as any)?.padding?.left ?? 24}
-                        style={{ width: "100%", height: 32, border: "1px solid #e5e7eb", borderRadius: 6, textAlign: "center", fontSize: 12 }}
+                        style={{ width: "100%", height: 32, border: "1px solid var(--eb-border)", borderRadius: 6, textAlign: "center", fontSize: 12 }}
                         onChange={(e) => updatePadding("left", Number(e.target.value))}
                       />
                     </div>
@@ -436,7 +432,7 @@ export function BuilderInspector({ className }: { className?: string }) {
               <details key={group.title} className="eb-group" open>
                 <summary className="eb-group__header">
                   {group.title}
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                  <Glyph name="expand_more" style={{ fontSize: 18 }} />
                 </summary>
                 <div className="eb-group__body">
                   {group.fields.map((field) => {
@@ -471,7 +467,7 @@ export function BuilderInspector({ className }: { className?: string }) {
               <details key={group.title} className="eb-group" open={!group.collapsed}>
                 <summary className="eb-group__header">
                   {group.title}
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                  <Glyph name="expand_more" style={{ fontSize: 18 }} />
                 </summary>
                 <div className="eb-group__body">
                   {group.fields.map((field) => {

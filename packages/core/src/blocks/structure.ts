@@ -1,3 +1,4 @@
+import type { RenderContext } from "../types";
 import type { Border, PreflightIssue } from "../types";
 import { defineBlock } from "../registry";
 import { padding } from "../document/defaults";
@@ -101,6 +102,9 @@ export const spacerBlock = defineBlock({
 
 /* ────────────────────────────── Raw HTML ────────────────────────────── */
 
+const renderHtmlBlock = ({ content, style, styleAttr }: RenderContext): string =>
+  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${hideClass(style)}><tr><td${styleAttr(blockShellStyles(style))}>${content.html ?? ""}</td></tr></table>`;
+
 export const htmlBlock = defineBlock({
   type: "html",
   label: "HTML",
@@ -133,10 +137,17 @@ export const htmlBlock = defineBlock({
     visibilityGroup(),
   ],
 
+  /* Canvas only. Fresh HTML blocks hold nothing but a comment, which renders as an invisible
+     zero-height table — the author sees an empty outline and cannot tell what they dropped. */
+  preview: (context: RenderContext) => {
+    const markup = String(context.content.html ?? "").replace(/<!--[\s\S]*?-->/g, "").trim();
+    if (markup) return renderHtmlBlock(context);
+    return `<div class="eb-placeholder"><strong>HTML</strong>&nbsp;— paste your markup in the panel on the right</div>`;
+  },
+
   /* Sanitisation happens in `compile`, which owns the policy — a block that sanitised itself
      would let a host bypass the policy by registering a block that does not. */
-  render: ({ content, style, styleAttr }) =>
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${hideClass(style)}><tr><td${styleAttr(blockShellStyles(style))}>${content.html ?? ""}</td></tr></table>`,
+  render: renderHtmlBlock,
 
   validate: ({ block, content }): PreflightIssue[] => {
     const html = String(content.html ?? "");

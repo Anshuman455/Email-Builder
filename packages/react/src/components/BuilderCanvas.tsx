@@ -1,10 +1,10 @@
 /* ═══ BuilderCanvas ═══
  *
  * Generic email builder canvas:
- * 1. Viewport bar at top (Desktop 600px / Mobile 360px toggle)
+ * 1. Command bar (undo/redo, Desktop/Mobile, Code, Preview)
  * 2. Email sheet container (responsive width, custom background & font)
  * 3. Rows with slots
- * 4. Footer with "Add row" and compliance notice
+ * 4. Footer with "Add row"
  */
 
 import { useState } from "react";
@@ -13,25 +13,16 @@ import { useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { useIsDragging } from "../hooks/useDnd";
 import { BuilderRow } from "./BuilderRow";
+import { BuilderToolbar, type BuilderDevice } from "./BuilderToolbar";
+import { Glyph } from "./Glyph";
 
 export interface BuilderCanvasProps {
   className?: string;
+  /** Show the command bar above the email. Default true. */
+  showToolbar?: boolean;
+  onPreview?: () => void;
+  onCodeView?: () => void;
 }
-
-const DesktopIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="2" y="3" width="20" height="14" rx="2" />
-    <line x1="8" y1="21" x2="16" y2="21" />
-    <line x1="12" y1="17" x2="12" y2="21" />
-  </svg>
-);
-
-const MobileIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="5" y="2" width="14" height="20" rx="2" />
-    <line x1="12" y1="18" x2="12.01" y2="18" />
-  </svg>
-);
 
 function RowSlot({ index }: { index: number }) {
   const editor = useEditor();
@@ -46,8 +37,8 @@ function RowSlot({ index }: { index: number }) {
           <div className="builder-drop-indicator__line" />
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
           <span className="builder-drop-indicator__pill">
-            <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 4 }}>add</span>
-            Insert row here
+            <Glyph name="add" style={{ fontSize: 13, marginRight: 4 }} />
+            {t("canvas.insertRow")}
           </span>
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
         </div>
@@ -57,23 +48,23 @@ function RowSlot({ index }: { index: number }) {
           type="button"
           className="eb-row-slot__add-btn"
           aria-label={t("canvas.addRow")}
-          title="Add row"
+          title={t("canvas.addRow")}
           onClick={(e) => {
             e.stopPropagation();
             editor.addRow([1], index);
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
+          <Glyph name="add" style={{ fontSize: 14 }} />
         </button>
       </div>
     </div>
   );
 }
 
-export function BuilderCanvas({ className }: BuilderCanvasProps) {
+export function BuilderCanvas({ className, showToolbar = true, onPreview, onCodeView }: BuilderCanvasProps) {
   const editor = useEditor();
   const t = useTranslator();
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [device, setDevice] = useState<BuilderDevice>("desktop");
   const rows = useEditorSelector((state) => state.document.rows);
   const settings = useEditorSelector((state) => state.document.settings);
   const contentWidth = settings.contentWidth || 600;
@@ -103,105 +94,79 @@ export function BuilderCanvas({ className }: BuilderCanvasProps) {
     <main
       className={canvasClasses}
       role="region"
-      aria-label="Email Canvas"
+      aria-label={t("canvas.label")}
       onClick={() => editor.select(null)}
     >
-      {/* Viewport Switcher Bar */}
-      <div className="builder-canvas__viewport-bar" onClick={(e) => e.stopPropagation()}>
-        <div className="builder-canvas__viewport-segmented" role="radiogroup" aria-label="Canvas preview mode">
-          <button
-            type="button"
-            className={`builder-canvas__viewport-btn${device === "desktop" ? " builder-canvas__viewport-btn--active" : ""}`}
-            role="radio"
-            aria-checked={device === "desktop"}
-            title="Desktop Preview (600px)"
-            onClick={() => setDevice("desktop")}
-          >
-            <DesktopIcon />
-            <span className="builder-canvas__viewport-label">Desktop</span>
-          </button>
-          <button
-            type="button"
-            className={`builder-canvas__viewport-btn${device === "mobile" ? " builder-canvas__viewport-btn--active" : ""}`}
-            role="radio"
-            aria-checked={device === "mobile"}
-            title="Mobile Preview (360px)"
-            onClick={() => setDevice("mobile")}
-          >
-            <MobileIcon />
-            <span className="builder-canvas__viewport-label">Mobile</span>
-          </button>
+      {showToolbar && (
+        <BuilderToolbar
+          device={device}
+          onDeviceChange={setDevice}
+          width={targetWidth}
+          onPreview={onPreview}
+          onCodeView={onCodeView}
+        />
+      )}
+
+      {/* Only the email scrolls; the command bar above stays put. */}
+      <div className="builder-canvas__scroll">
+        {/* Email Sheet */}
+        <div
+          className={`builder-canvas__sheet eb-sheet${device === "mobile" ? " builder-canvas__sheet--mobile eb-sheet--mobile" : ""}`}
+          style={sheetStyle}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {rows.length === 0 ? (
+            <div
+              ref={emptyDrop.setNode}
+              className={`builder-canvas__empty${emptyDrop.isOver ? " builder-canvas__empty--over" : ""}`}
+            >
+              <Glyph name="add_box" />
+              <p className="builder-canvas__empty-title">Start with a row</p>
+              <p className="builder-canvas__empty-hint">Pick a layout on the left, then drag blocks into it.</p>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{
+                  marginTop: 12,
+                  padding: "8px 16px",
+                  background: "var(--eb-accent)",
+                  color: "var(--eb-text-inverse)",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                }}
+                onClick={() => editor.addRow([1])}
+              >
+                Add a full-width row
+              </button>
+            </div>
+          ) : (
+            <>
+              {rows.map((row, index) => (
+                <div key={row.id}>
+                  <RowSlot index={index} />
+                  <BuilderRow row={row} index={index} />
+                </div>
+              ))}
+              <RowSlot index={rows.length} />
+            </>
+          )}
         </div>
 
-        <div className="builder-canvas__viewport-info">
-          {device === "mobile" ? "360px" : `${contentWidth}px`}
-        </div>
-      </div>
-
-      {/* Email Sheet */}
-      <div
-        className={`builder-canvas__sheet eb-sheet${device === "mobile" ? " builder-canvas__sheet--mobile eb-sheet--mobile" : ""}`}
-        style={sheetStyle}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {rows.length === 0 ? (
-          <div
-            ref={emptyDrop.setNode}
-            className={`builder-canvas__empty${emptyDrop.isOver ? " builder-canvas__empty--over" : ""}`}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">add_box</span>
-            <p className="builder-canvas__empty-title">Start with a row</p>
-            <p className="builder-canvas__empty-hint">Pick a layout on the left, then drag blocks into it.</p>
+        {/* Canvas Footer */}
+        {rows.length > 0 && (
+          <div className="builder-canvas__footer" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
-              className="btn-secondary"
-              style={{
-                marginTop: 12,
-                padding: "8px 16px",
-                background: "#394648",
-                color: "#fff",
-                border: "none",
-                borderRadius: 6,
-                cursor: "pointer",
-              }}
+              className="builder-canvas__add-row"
               onClick={() => editor.addRow([1])}
             >
-              Add a full-width row
+              <Glyph name="add" />
+              {t("canvas.addRow")}
             </button>
           </div>
-        ) : (
-          <>
-            {rows.map((row, index) => (
-              <div key={row.id}>
-                <RowSlot index={index} />
-                <BuilderRow row={row} index={index} />
-              </div>
-            ))}
-            <RowSlot index={rows.length} />
-          </>
         )}
       </div>
-
-      {/* Canvas Footer */}
-      {rows.length > 0 && (
-        <div className="builder-canvas__footer" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            className="builder-canvas__add-row"
-            onClick={() => editor.addRow([1])}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">add</span>
-            Add row
-          </button>
-
-          <div className="builder-canvas__locked-footer">
-            <span className="material-symbols-outlined" aria-hidden="true">lock</span>
-            <span>
-              An unsubscribe link and postal address will be included with your email automatically.
-            </span>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

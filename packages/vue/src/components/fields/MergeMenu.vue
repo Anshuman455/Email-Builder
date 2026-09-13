@@ -9,6 +9,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useEditor, useTranslator } from "../../context";
 import { UI_ICONS } from "../../icons";
 import EbIcon from "../EbIcon.vue";
+import EbPortal from "../EbPortal.vue";
 
 const emit = defineEmits<{ insert: [token: string] }>();
 
@@ -105,7 +106,7 @@ onBeforeUnmount(() => {
       {{ t("field.insertField") }}
     </button>
 
-    <Teleport to="body">
+    <EbPortal>
       <div
         v-if="open"
         class="eb-merge__menu"
@@ -139,6 +140,6 @@ onBeforeUnmount(() => {
           </template>
         </div>
       </div>
-    </Teleport>
+    </EbPortal>
   </span>
 </template>

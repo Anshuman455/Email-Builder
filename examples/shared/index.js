@@ -32,7 +32,7 @@ export const ratingBlock = defineBlock({
   group: "Content",
   description: "A one-click satisfaction rating for email feedback.",
   keywords: ["feedback", "rating", "nps", "csat", "survey", "stars"],
-  icon: `<span class="material-symbols-outlined">star</span>`,
+  icon: "star",
   mergeableFields: ["question", "url"],
 
   defaultContent: () => ({
@@ -92,7 +92,9 @@ export const ratingBlock = defineBlock({
   text: ({ content }) => `${content.question}\n${content.url}`,
 });
 
-export const CUSTOM_BLOCKS = [ratingBlock];
+/* `ratingBlock` above is a reference for writing a custom block; the demos do not register it.
+   To try it, pass `[ratingBlock]` here. */
+export const CUSTOM_BLOCKS = [];
 export const RESTAURANT_BLOCKS = CUSTOM_BLOCKS;
 
 /* ────────────────────────────── Adapter ────────────────────────────── */
@@ -331,42 +333,6 @@ export const SEED = {
           ],
         },
       ],
-    },
-    {
-      id: "row-footer",
-      layout: [1],
-      style: {
-        backgroundColor: "#f9fafb",
-        padding: { top: 20, right: 36, bottom: 24, left: 36 },
-        fullWidth: true,
-      },
-      columns: [
-        {
-          id: "col-footer",
-          blocks: [
-            {
-              id: "blk-footer",
-              type: "footer",
-              content: {
-                address: "{{company.name}} · 100 Innovation Way, Suite 400 · {{company.website}}",
-                unsubscribeLabel: "Unsubscribe",
-                unsubscribeUrl: "{{system.unsubscribe_url}}",
-                preferencesLabel: "Manage Preferences",
-                preferencesUrl: "{{system.unsubscribe_url}}",
-                extra: "You received this email because you subscribed to updates from {{company.name}}.",
-              },
-              style: {
-                align: "center",
-                fontSize: 12,
-                color: "#9ca3af",
-                linkColor: "#6b7280",
-                lineHeight: 1.7,
-                padding: { top: 8, right: 0, bottom: 8, left: 0 },
-              },
-            },
-          ],
-        },
-      ],
-    },
+    }
   ],
 };

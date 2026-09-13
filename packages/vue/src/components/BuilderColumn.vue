@@ -9,7 +9,9 @@ import { columnWidths, type Column, type Row } from "@email-builder/core";
 import { useEditor, useTranslator } from "../context";
 import { useDragState, useEditorSelector } from "../composables";
 import { vDrop } from "../directives";
+import { UI_ICONS } from "../icons";
 import BuilderBlock from "./BuilderBlock.vue";
+import EbIcon from "./EbIcon.vue";
 
 const props = defineProps<{ row: Row; column: Column; columnIndex: number }>();
 
@@ -61,9 +63,12 @@ const classes = computed(() =>
     :style="{ flex: `0 0 ${basis}`, maxWidth: basis }"
     @click.stop="editor.select({ kind: 'column', id: column.id })"
   >
-    <div v-if="empty" :class="['builder-column__drop-zone', isOver ? 'builder-column__drop-zone--over' : '']">
-      <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
-      <span>{{ isOver ? "Drop block here" : (t('canvas.emptyColumn') || "Drop block here") }}</span>
+    <div v-if="empty" :class="['eb-dropzone', isOver ? 'eb-dropzone--over' : '']">
+      <span class="eb-dropzone__icon"><EbIcon :svg="UI_ICONS.plus" /></span>
+      <span class="eb-dropzone__labels">
+        <span class="eb-dropzone__label eb-dropzone__label--idle">{{ t("canvas.emptyColumn") }}</span>
+        <span class="eb-dropzone__label eb-dropzone__label--over" aria-hidden="true">{{ t("canvas.dropRelease") }}</span>
+      </span>
     </div>
     <BuilderBlock
       v-for="(block, bi) in column.blocks"

@@ -13,15 +13,17 @@
 
 import { computed } from "vue";
 import type { Row } from "@email-builder/core";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useDragState, useEditorSelector } from "../composables";
 import { vDrag, vDrop } from "../directives";
 import BuilderColumn from "./BuilderColumn.vue";
+import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{ row: Row; index: number }>();
 
 const editor = useEditor();
 
+const t = useTranslator(editor);
 const totalRows = useEditorSelector((state) => state.document.rows.length);
 const selected = useEditorSelector(
   (state) => state.selection?.kind === "row" && state.selection.id === props.row.id,
@@ -70,8 +72,8 @@ function moveRow(dir: number) {
       <div class="builder-drop-indicator__line" />
       <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
       <span class="builder-drop-indicator__pill">
-        <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
-        Insert row {{ edge === 'after' ? 'below' : 'above' }}
+        <EbGlyph name="add" style="font-size: 13px; margin-right: 4px;" />
+        {{ t(edge === 'after' ? 'row.insertBelow' : 'row.insertAbove') }}
       </span>
       <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
     </div>
@@ -83,56 +85,56 @@ function moveRow(dir: number) {
         class="builder-row__grip"
         :aria-label="`Move row ${index + 1}`"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+        <EbGlyph name="drag_indicator" />
       </button>
 
       <div class="builder-row__actions">
         <button
           type="button"
           class="builder-row__action"
-          aria-label="Move row up"
+          :aria-label="t('row.moveUp')"
           :disabled="index === 0"
-          title="Move row up"
+          :title="t('row.moveUp')"
           @click.stop="moveRow(-1)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+          <EbGlyph name="arrow_upward" />
         </button>
         <button
           type="button"
           class="builder-row__action"
-          aria-label="Move row down"
+          :aria-label="t('row.moveDown')"
           :disabled="index >= totalRows - 1"
-          title="Move row down"
+          :title="t('row.moveDown')"
           @click.stop="moveRow(1)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+          <EbGlyph name="arrow_downward" />
         </button>
         <button
           type="button"
           class="builder-row__action"
-          aria-label="Change row layout"
-          title="Change row layout"
+          :aria-label="t('row.layout')"
+          :title="t('row.layout')"
           @click.stop="editor.select({ kind: 'row', id: row.id })"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+          <EbGlyph name="view_column" />
         </button>
         <button
           type="button"
           class="builder-row__action"
-          aria-label="Duplicate row"
-          title="Duplicate row"
+          :aria-label="t('row.duplicate')"
+          :title="t('row.duplicate')"
           @click.stop="editor.duplicateRow(row.id)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+          <EbGlyph name="content_copy" />
         </button>
         <button
           type="button"
           class="builder-row__action builder-row__action--danger"
-          aria-label="Delete row"
-          title="Delete row"
+          :aria-label="t('row.delete')"
+          :title="t('row.delete')"
           @click.stop="editor.removeRow(row.id)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          <EbGlyph name="delete" />
         </button>
       </div>
     </div>

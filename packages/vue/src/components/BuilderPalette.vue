@@ -11,13 +11,15 @@
  */
 
 import { computed, ref } from "vue";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 import { vDrag } from "../directives";
+import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{ class?: string }>();
 
 const editor = useEditor();
+const t = useTranslator(editor);
 
 const document = useEditorSelector((state) => state.document);
 const selection = useEditorSelector((state) => state.selection);
@@ -97,7 +99,7 @@ function addBlock(type: string) {
 </script>
 
 <template>
-  <aside class="builder-palette" aria-label="Palette">
+  <aside class="builder-palette" :aria-label="t('palette.label')">
     <!-- Palette Tabs -->
     <div
       class="builder-palette__tabs"
@@ -189,9 +191,7 @@ function addBlock(type: string) {
                   class="palette-block__svg-host"
                   v-html="b.icon"
                 />
-                <span v-else class="material-symbols-outlined" aria-hidden="true">
-                  {{ b.icon || BLOCK_ICONS[b.type] || 'widgets' }}
-                </span>
+                <EbGlyph :name="b.icon || BLOCK_ICONS[b.type] || 'widgets'" v-else />
               </span>
               <span class="palette-block__label">{{ b.label }}</span>
             </div>
@@ -209,7 +209,7 @@ function addBlock(type: string) {
             @click="editor.select({ kind: 'row', id: row.id })"
           >
             <div class="structure-row__header">
-              <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>
+              <EbGlyph name="table_rows" />
               <span>Row {{ rIndex + 1 }}</span>
               <span class="structure-row__badge">{{ row.columns.length }} col</span>
             </div>
@@ -224,7 +224,7 @@ function addBlock(type: string) {
                   :class="['structure-column__header', selection?.kind === 'column' && selection.id === col.id ? 'structure-column--selected' : '']"
                   @click.stop="editor.select({ kind: 'column', id: col.id })"
                 >
-                  <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+                  <EbGlyph name="view_column" />
                   <span>Column {{ cIndex + 1 }}</span>
                   <span class="structure-column__badge">{{ col.blocks.length }}</span>
                 </div>
@@ -236,9 +236,7 @@ function addBlock(type: string) {
                     :class="['structure-block', selection?.kind === 'block' && selection.id === b.id ? 'structure-block--selected' : '']"
                     @click.stop="editor.select({ kind: 'block', id: b.id })"
                   >
-                    <span class="material-symbols-outlined" aria-hidden="true">
-                      {{ BLOCK_ICONS[b.type] || 'widgets' }}
-                    </span>
+                    <EbGlyph :name="BLOCK_ICONS[b.type] || 'widgets'" />
                     <span>{{ editor.blocks.get(b.type)?.label || b.type }}</span>
                   </div>
                 </div>

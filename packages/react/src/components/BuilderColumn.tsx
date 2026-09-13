@@ -9,6 +9,7 @@ import { columnWidths, type Column, type Row } from "@email-builder/core";
 import { useEditor, useTranslator } from "../context";
 import { useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
+import { PlusIcon } from "../icons";
 import { BuilderBlock } from "./BuilderBlock";
 
 export interface BuilderColumnProps {
@@ -59,9 +60,16 @@ export function BuilderColumn({ row, column, columnIndex }: BuilderColumnProps) 
       }}
     >
       {empty ? (
-        <div className={`builder-column__drop-zone${drop.isOver ? " builder-column__drop-zone--over" : ""}`}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add_circle</span>
-          <span>{drop.isOver ? "Drop block here" : (t("canvas.emptyColumn") || "Drop block here")}</span>
+        <div className={`eb-dropzone${drop.isOver ? " eb-dropzone--over" : ""}`}>
+          <span className="eb-dropzone__icon">
+            <PlusIcon />
+          </span>
+          <span className="eb-dropzone__labels">
+            <span className="eb-dropzone__label eb-dropzone__label--idle">{t("canvas.emptyColumn")}</span>
+            <span className="eb-dropzone__label eb-dropzone__label--over" aria-hidden="true">
+              {t("canvas.dropRelease")}
+            </span>
+          </span>
         </div>
       ) : (
         column.blocks.map((block) => (

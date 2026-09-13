@@ -8,6 +8,7 @@ import { Teleport } from "vue";
 import { useEditor, useTranslator } from "../context";
 import { UI_ICONS } from "../icons";
 import EbIcon from "./EbIcon.vue";
+import EbPortal from "./EbPortal.vue";
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -30,7 +31,7 @@ async function copy() {
 </script>
 
 <template>
-  <Teleport to="body">
+  <EbPortal>
     <div class="eb-modal-backdrop" @click.self="emit('close')">
       <div class="eb-modal eb-modal--wide">
         <div class="eb-modal__header">
@@ -48,5 +49,5 @@ async function copy() {
         </div>
       </div>
     </div>
-  </Teleport>
+  </EbPortal>
 </template>

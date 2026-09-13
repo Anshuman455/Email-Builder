@@ -119,6 +119,10 @@ export function createDragEngine(options: DragEngineOptions): DragEngine {
   const touchDelay = options.touchDelay ?? 180;
 
   let pending: { source: DragSource; x: number; y: number; pointerId: number; timer: number | null } | null = null;
+  /* Draggables nest — a block inside a row that is draggable as a whole. One pointerdown bubbles
+     through both, and the outer listener would overwrite `pending`, so grabbing a block would
+     drag its row. The innermost draggable (the first to hear the event) claims it. */
+  const claimed = new WeakSet<Event>();
   let dragging = false;
   let scrollFrame: number | null = null;
   let scrollTarget: Element | null = null;
@@ -297,7 +301,13 @@ export function createDragEngine(options: DragEngineOptions): DragEngine {
       /* Left button / primary contact only. A right-click opening a context menu mid-drag is a
          broken state nothing recovers from cleanly. */
       if (event.button !== 0) return;
-      if ((event.target as HTMLElement)?.closest?.("[data-eb-no-drag]")) return;
+      /* `data-eb-no-drag` keeps toolbar buttons clickable inside a draggable block; an element
+         marked `data-eb-drag-handle` (the toolbar's grip) opts back in. Without the opt-in, the
+         grip — the one control whose job is dragging — could never start a drag. */
+      const target = event.target as HTMLElement | null;
+      if (target?.closest?.("[data-eb-no-drag]") && !target.closest("[data-eb-drag-handle]")) return;
+      if (claimed.has(event)) return;
+      claimed.add(event);
 
       pending = { source: data, x: event.clientX, y: event.clientY, pointerId: event.pointerId, timer: null };
 

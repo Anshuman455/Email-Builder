@@ -10,6 +10,7 @@ import {
   escapeAttr,
   escapeHtml,
   safeUrl,
+  sanitizeBlockContent,
   sanitizeHtml,
   styleAttr,
   type Block,
@@ -48,6 +49,9 @@ export function compileBlockPreview({ editor, block, settings, width }: BlockPre
     preview: true,
     sample: undefined,
   };
+
+  /* Rich-text fields are cleaned before rendering, exactly as core's compiler does. */
+  context.content = sanitizeBlockContent(definition, context.content);
 
   try {
     const html = (definition.preview ?? definition.render)(context) ?? "";

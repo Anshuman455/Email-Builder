@@ -2,10 +2,10 @@
 /* ═══ BuilderCanvas ═══
  *
  * Generic email builder canvas:
- * 1. Viewport bar at top (Desktop 600px / Mobile 360px toggle)
+ * 1. Command bar (undo/redo, Desktop/Mobile, Code, Preview)
  * 2. Email sheet container (responsive width, custom background & font)
  * 3. Rows with slots
- * 4. Footer with "Add row" and compliance notice
+ * 4. Footer with "Add row"
  */
 
 import { computed, ref } from "vue";
@@ -13,8 +13,11 @@ import { useEditor, useTranslator } from "../context";
 import { useDragState, useEditorSelector } from "../composables";
 import { vDrop } from "../directives";
 import BuilderRow from "./BuilderRow.vue";
+import BuilderToolbar from "./BuilderToolbar.vue";
+import EbGlyph from "./EbGlyph.vue";
 
-const props = defineProps<{ class?: string }>();
+const props = withDefaults(defineProps<{ class?: string; showToolbar?: boolean }>(), { showToolbar: true });
+const emit = defineEmits<{ preview: []; code: [] }>();
 
 const editor = useEditor();
 const t = useTranslator(editor);
@@ -44,87 +47,87 @@ function isSlotOver(index: number) {
   <main
     class="builder-canvas"
     role="region"
-    aria-label="Email Canvas"
+    :aria-label="t('canvas.label')"
     @click="editor.select(null)"
   >
-    <!-- Viewport Switcher Bar -->
-    <div class="builder-canvas__viewport-bar" @click.stop>
-      <div class="builder-canvas__viewport-segmented" role="radiogroup" aria-label="Canvas preview mode">
-        <button
-          type="button"
-          :class="['builder-canvas__viewport-btn', device === 'desktop' ? 'builder-canvas__viewport-btn--active' : '']"
-          role="radio"
-          :aria-checked="device === 'desktop'"
-          title="Desktop Preview (600px)"
-          @click="device = 'desktop'"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="2" y="3" width="20" height="14" rx="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
-          <span class="builder-canvas__viewport-label">Desktop</span>
-        </button>
-        <button
-          type="button"
-          :class="['builder-canvas__viewport-btn', device === 'mobile' ? 'builder-canvas__viewport-btn--active' : '']"
-          role="radio"
-          :aria-checked="device === 'mobile'"
-          title="Mobile Preview (360px)"
-          @click="device = 'mobile'"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="5" y="2" width="14" height="20" rx="2" />
-            <line x1="12" y1="18" x2="12.01" y2="18" />
-          </svg>
-          <span class="builder-canvas__viewport-label">Mobile</span>
-        </button>
-      </div>
+    <BuilderToolbar
+      v-if="showToolbar"
+      v-model:device="device"
+      :width="targetWidth"
+      @preview="emit('preview')"
+      @code="emit('code')"
+    />
 
-      <div class="builder-canvas__viewport-info">
-        {{ device === 'mobile' ? '360px' : (contentWidth + 'px') }}
-      </div>
-    </div>
-
-    <!-- Email Sheet -->
-    <div
-      :class="['builder-canvas__sheet', device === 'mobile' ? 'builder-canvas__sheet--mobile' : '']"
-      :style="sheetStyle"
-      @click.stop
-    >
-      <!-- Empty state -->
+    <!-- Only the email scrolls; the command bar above stays put. -->
+    <div class="builder-canvas__scroll">
+      <!-- Email Sheet -->
       <div
-        v-if="rows.length === 0"
-        v-drop="{ editor, data: { kind: 'row-slot', index: 0 }, container: true }"
-        class="builder-canvas__empty"
+        :class="['builder-canvas__sheet', device === 'mobile' ? 'builder-canvas__sheet--mobile' : '']"
+        :style="sheetStyle"
+        @click.stop
       >
-        <span class="material-symbols-outlined" aria-hidden="true">add_box</span>
-        <p class="builder-canvas__empty-title">Start with a row</p>
-        <p class="builder-canvas__empty-hint">Pick a layout on the left, then drag blocks into it.</p>
-        <button
-          type="button"
-          class="btn-secondary"
-          style="margin-top: 12px; padding: 8px 16px; background: #394648; color: #fff; border: none; border-radius: 6px; cursor: pointer;"
-          @click="editor.addRow([1])"
+        <!-- Empty state -->
+        <div
+          v-if="rows.length === 0"
+          v-drop="{ editor, data: { kind: 'row-slot', index: 0 }, container: true }"
+          class="builder-canvas__empty"
         >
-          Add a full-width row
-        </button>
-      </div>
+          <EbGlyph name="add_box" />
+          <p class="builder-canvas__empty-title">Start with a row</p>
+          <p class="builder-canvas__empty-hint">Pick a layout on the left, then drag blocks into it.</p>
+          <button
+            type="button"
+            class="btn-secondary"
+            style="margin-top: 12px; padding: 8px 16px; background: var(--eb-accent); color: var(--eb-text-inverse); border: none; border-radius: 6px; cursor: pointer;"
+            @click="editor.addRow([1])"
+          >
+            Add a full-width row
+          </button>
+        </div>
 
-      <!-- Rows -->
-      <template v-else>
-        <template v-for="(row, index) in rows" :key="row.id">
-          <!-- Row slot drop zone before row -->
+        <!-- Rows -->
+        <template v-else>
+          <template v-for="(row, index) in rows" :key="row.id">
+            <!-- Row slot drop zone before row -->
+            <div
+              v-drop="{ editor, data: { kind: 'row-slot', index }, orientation: 'vertical' }"
+              :class="['eb-row-slot', isSlotOver(index) ? 'eb-row-slot--over' : '']"
+            >
+              <div class="eb-row-slot__guideline" />
+              <div v-if="isSlotOver(index)" class="builder-drop-indicator builder-drop-indicator--row">
+                <div class="builder-drop-indicator__line" />
+                <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
+                <span class="builder-drop-indicator__pill">
+                  <EbGlyph name="add" style="font-size: 13px; margin-right: 4px;" />
+                  {{ t('canvas.insertRow') }}
+                </span>
+                <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
+              </div>
+              <div class="eb-row-slot__add">
+                <button
+                  type="button"
+                  class="eb-row-slot__add-btn"
+                  :title="t('canvas.addRow')"
+                  @click.stop="editor.addRow([1], index)"
+                >
+                  <EbGlyph name="add" style="font-size: 14px;" />
+                </button>
+              </div>
+            </div>
+            <BuilderRow :row="row" :index="index" />
+          </template>
+
+          <!-- Trailing slot after last row -->
           <div
-            v-drop="{ editor, data: { kind: 'row-slot', index }, orientation: 'vertical' }"
-            :class="['eb-row-slot', isSlotOver(index) ? 'eb-row-slot--over' : '']"
+            v-drop="{ editor, data: { kind: 'row-slot', index: rows.length }, orientation: 'vertical' }"
+            :class="['eb-row-slot', isSlotOver(rows.length) ? 'eb-row-slot--over' : '']"
           >
             <div class="eb-row-slot__guideline" />
-            <div v-if="isSlotOver(index)" class="builder-drop-indicator builder-drop-indicator--row">
+            <div v-if="isSlotOver(rows.length)" class="builder-drop-indicator builder-drop-indicator--row">
               <div class="builder-drop-indicator__line" />
               <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
               <span class="builder-drop-indicator__pill">
-                <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
+                <EbGlyph name="add" style="font-size: 13px; margin-right: 4px;" />
                 Insert row here
               </span>
               <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
@@ -133,61 +136,26 @@ function isSlotOver(index: number) {
               <button
                 type="button"
                 class="eb-row-slot__add-btn"
-                title="Add row"
-                @click.stop="editor.addRow([1], index)"
+                :title="t('canvas.addRow')"
+                @click.stop="editor.addRow([1], rows.length)"
               >
-                <span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                <EbGlyph name="add" style="font-size: 14px;" />
               </button>
             </div>
           </div>
-          <BuilderRow :row="row" :index="index" />
         </template>
+      </div>
 
-        <!-- Trailing slot after last row -->
-        <div
-          v-drop="{ editor, data: { kind: 'row-slot', index: rows.length }, orientation: 'vertical' }"
-          :class="['eb-row-slot', isSlotOver(rows.length) ? 'eb-row-slot--over' : '']"
+      <!-- Canvas Footer -->
+      <div v-if="rows.length > 0" class="builder-canvas__footer" @click.stop>
+        <button
+          type="button"
+          class="builder-canvas__add-row"
+          @click="editor.addRow([1])"
         >
-          <div class="eb-row-slot__guideline" />
-          <div v-if="isSlotOver(rows.length)" class="builder-drop-indicator builder-drop-indicator--row">
-            <div class="builder-drop-indicator__line" />
-            <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
-            <span class="builder-drop-indicator__pill">
-              <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
-              Insert row here
-            </span>
-            <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
-          </div>
-          <div class="eb-row-slot__add">
-            <button
-              type="button"
-              class="eb-row-slot__add-btn"
-              title="Add row"
-              @click.stop="editor.addRow([1], rows.length)"
-            >
-              <span class="material-symbols-outlined" style="font-size: 14px;">add</span>
-            </button>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- Canvas Footer -->
-    <div v-if="rows.length > 0" class="builder-canvas__footer" @click.stop>
-      <button
-        type="button"
-        class="builder-canvas__add-row"
-        @click="editor.addRow([1])"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">add</span>
-        Add row
-      </button>
-
-      <div class="builder-canvas__locked-footer">
-        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-        <span>
-          An unsubscribe link and postal address will be included with your email automatically.
-        </span>
+          <EbGlyph name="add" />
+          {{ t('canvas.addRow') }}
+        </button>
       </div>
     </div>
   </main>

@@ -16,6 +16,7 @@ import { useEditor, useTranslator } from "../context";
 import { useDraggable, useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { BuilderColumn } from "./BuilderColumn";
+import { Glyph } from "./Glyph";
 
 export interface BuilderRowProps {
   row: Row;
@@ -76,8 +77,8 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
           <div className="builder-drop-indicator__line" />
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
           <span className="builder-drop-indicator__pill">
-            <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 4 }}>add</span>
-            Insert row {drop.edge === "after" ? "below" : "above"}
+            <Glyph name="add" style={{ fontSize: 13, marginRight: 4 }} />
+            {t(drop.edge === "after" ? "row.insertBelow" : "row.insertAbove")}
           </span>
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
         </div>
@@ -91,71 +92,71 @@ export function BuilderRow({ row, index }: BuilderRowProps) {
           className="builder-row__grip"
           aria-label={`Move row ${index + 1}`}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+          <Glyph name="drag_indicator" />
         </button>
 
         <div className="builder-row__actions">
           <button
             type="button"
             className="builder-row__action"
-            aria-label="Move row up"
+            aria-label={t("row.moveUp")}
             disabled={index === 0}
-            title="Move row up"
+            title={t("row.moveUp")}
             onClick={(event) => {
               event.stopPropagation();
               moveRow(-1);
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+            <Glyph name="arrow_upward" />
           </button>
           <button
             type="button"
             className="builder-row__action"
-            aria-label="Move row down"
+            aria-label={t("row.moveDown")}
             disabled={index >= totalRows - 1}
-            title="Move row down"
+            title={t("row.moveDown")}
             onClick={(event) => {
               event.stopPropagation();
               moveRow(1);
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+            <Glyph name="arrow_downward" />
           </button>
           <button
             type="button"
             className="builder-row__action"
-            aria-label="Change row layout"
-            title="Change row layout"
+            aria-label={t("row.layout")}
+            title={t("row.layout")}
             onClick={(event) => {
               event.stopPropagation();
               editor.select({ kind: "row", id: row.id });
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">view_column</span>
+            <Glyph name="view_column" />
           </button>
           <button
             type="button"
             className="builder-row__action"
-            aria-label="Duplicate row"
-            title="Duplicate row"
+            aria-label={t("row.duplicate")}
+            title={t("row.duplicate")}
             onClick={(event) => {
               event.stopPropagation();
               editor.duplicateRow(row.id);
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">content_copy</span>
+            <Glyph name="content_copy" />
           </button>
           <button
             type="button"
             className="builder-row__action builder-row__action--danger"
-            aria-label="Delete row"
-            title="Delete row"
+            aria-label={t("row.delete")}
+            title={t("row.delete")}
             onClick={(event) => {
               event.stopPropagation();
               editor.removeRow(row.id);
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+            <Glyph name="delete" />
           </button>
         </div>
       </div>

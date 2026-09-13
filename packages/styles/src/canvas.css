@@ -145,15 +145,15 @@
   align-items: center;
   gap: 3px;
   padding: 3px 4px 3px 10px;
-  background: #2b393b;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--eb-accent-hover);
+  border: 1px solid color-mix(in srgb, var(--eb-text-inverse) 12%, transparent);
   border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24), 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--eb-shadow-color) 24%, transparent), 0 1px 3px color-mix(in srgb, var(--eb-shadow-color) 12%, transparent);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--eb-duration-fast) var(--eb-ease), transform var(--eb-duration-fast) var(--eb-ease);
   z-index: var(--eb-z-chrome);
-  color: #ffffff !important;
+  color: var(--eb-text-inverse) !important;
 }
 
 .eb-block:hover > .eb-block__toolbar,
@@ -166,8 +166,8 @@
   width: 24px;
   height: 24px;
   border-radius: 5px;
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--eb-text-inverse) !important;
+  background: color-mix(in srgb, var(--eb-text-inverse) 12%, transparent) !important;
   border: none;
   cursor: pointer;
   transition: all var(--eb-duration-fast) var(--eb-ease);
@@ -175,8 +175,8 @@
 }
 
 .eb-block__toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.28) !important;
-  color: #ffffff !important;
+  background: color-mix(in srgb, var(--eb-text-inverse) 28%, transparent) !important;
+  color: var(--eb-text-inverse) !important;
   opacity: 1 !important;
   transform: scale(1.08);
 }
@@ -194,18 +194,18 @@
 }
 
 .eb-block__toolbar-btn--danger:hover {
-  background: #ef4444 !important;
-  color: #ffffff !important;
+  background: var(--eb-danger) !important;
+  color: var(--eb-text-inverse) !important;
   opacity: 1 !important;
 }
 
 .eb-block__toolbar-btn--drag { cursor: grab; }
 .eb-block__toolbar-btn svg,
-.eb-block__toolbar-btn .material-symbols-outlined {
+.eb-block__toolbar-btn .eb-glyph {
   width: 15px !important;
   height: 15px !important;
   font-size: 15px !important;
-  color: #ffffff !important;
+  color: var(--eb-text-inverse) !important;
   line-height: 1;
 }
 
@@ -216,7 +216,7 @@
   padding: 1px 6px;
   border-radius: 3px;
   background: var(--eb-accent);
-  color: #fff;
+  color: var(--eb-text-inverse);
   font-size: var(--eb-text-xs);
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -245,8 +245,13 @@
 /* Placeholders emitted by blocks in preview mode — an image with no source, an empty slot. */
 .eb-placeholder {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  min-height: 72px;
+  padding: 16px 20px;
+  text-align: center;
+  line-height: 1.4;
   border: 1px dashed var(--eb-border-strong);
   border-radius: var(--eb-radius-sm);
   background: var(--eb-surface-sunken);
@@ -259,16 +264,13 @@
 .eb-placeholder--error { border-color: var(--eb-danger); color: var(--eb-danger); background: var(--eb-danger-soft); padding: 12px; }
 
 /* ── Row slots ──
-   The gaps between rows. 6px at rest so they do not push the layout around, expanding on hover
-   during a drag so they are actually hittable. */
+   The gaps between rows. A constant 8px — resizing them mid-drag moves every row under the
+   pointer. theme.css gives them a larger, invisible hit area during a drag instead. */
 
 .eb-row-slot {
   position: relative;
-  height: 6px;
-  transition: height var(--eb-duration-fast) var(--eb-ease);
+  height: 8px;
 }
-
-.eb-dragging .eb-row-slot { height: 22px; }
 
 .eb-row-slot__add {
   position: absolute;
@@ -291,7 +293,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--eb-accent);
-  color: #fff;
+  color: var(--eb-text-inverse);
   box-shadow: var(--eb-shadow-2);
 }
 

@@ -153,10 +153,15 @@ describe("normalize", () => {
 });
 
 describe("preflight", () => {
-  it("flags a missing button destination and a missing footer", () => {
+  it("flags a missing button destination", () => {
     const issues = preflight(docWith("button"), deps);
     expect(issues.some((i) => i.id.startsWith("button-href"))).toBe(true);
-    expect(issues.some((i) => i.id === "no-footer")).toBe(true);
+  });
+
+  it("only requires a footer block when asked to", () => {
+    expect(preflight(docWith("button"), deps).some((i) => i.id === "no-footer")).toBe(false);
+    const required = preflight(docWith("button"), deps, { requireFooter: true }).find((i) => i.id === "no-footer");
+    expect(required?.severity).toBe("error");
   });
 
   it("flags an unknown merge token", () => {

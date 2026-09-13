@@ -4,7 +4,7 @@
  * the tree is deep (root → canvas → row → column → block → field) and threading it by hand would
  * make every intermediate component care about something it does not use. */
 
-import { inject, provide, type InjectionKey } from "vue";
+import { inject, provide, ref, type InjectionKey, type Ref } from "vue";
 import { createTranslator, type Editor } from "@email-builder/engine";
 
 export const editorKey: InjectionKey<Editor> = Symbol("email-builder:editor");
@@ -37,4 +37,18 @@ export function useTranslator(editor?: Editor): Translator {
     translators.set(target, translator);
   }
   return translator;
+}
+
+export type BuilderTheme = "light" | "dark" | "auto";
+
+/* Teleported overlays render outside the root element, so they read the theme from here to
+   re-declare `data-eb-theme` on their own `.eb-root` wrapper (see EbPortal). */
+export const themeKey: InjectionKey<Ref<BuilderTheme>> = Symbol("email-builder:theme");
+
+export function provideTheme(theme: Ref<BuilderTheme>): void {
+  provide(themeKey, theme);
+}
+
+export function useBuilderTheme(): Ref<BuilderTheme> {
+  return inject(themeKey, ref<BuilderTheme>("light"));
 }

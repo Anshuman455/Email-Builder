@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COMMON_FIELDS, type MergeField } from "@email-builder/core";
 import type { Editor } from "@email-builder/engine";
+import { Glyph } from "./Glyph";
 
 export interface MentionMenuProps {
   editor: Editor;
@@ -141,10 +142,8 @@ export function MentionMenu({ editor, coords, query, onSelect, onClose }: Mentio
 
       {query && (
         <div className="eb-mention-menu__search">
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: "#94a3b8" }}>
-            search
-          </span>
-          <span style={{ fontSize: 12, color: "#64748b" }}>Filter: &ldquo;{query}&rdquo;</span>
+          <Glyph name="search" style={{ fontSize: 14, color: "var(--eb-text-subtle)" }} />
+          <span style={{ fontSize: 12, color: "var(--eb-text-muted)" }}>Filter: &ldquo;{query}&rdquo;</span>
         </div>
       )}
 

@@ -38,7 +38,6 @@ BuilderInspector
 BuilderField          renders one Field from a block's declarative schema
 BuilderPreview
 BuilderCodeView
-PreflightPanel
 DragLayer             ghost + drop indicator; mounted once by EmailBuilder
 
 useEmailBuilder(options)   -> Editor        (React hook / Vue composable, same name)
@@ -66,7 +65,7 @@ EditorProvider / provideEditor + useEditor    (context plumbing)
   title?: string
   showPalette?: boolean         // default true
   showInspector?: boolean       // default true
-  showToolbar?: boolean         // default true
+  showToolbar?: boolean         // default true — the command bar above the email
   class/className?: string
 }
 ```
@@ -77,7 +76,7 @@ Vue additionally emits: `save`, `change`, `ready`, `select`. React uses the `on*
 
 ```
 .eb-root[data-eb-theme]
-  BuilderToolbar        .eb-toolbar
+  BuilderToolbar        .eb-commandbar
   .eb-body
     BuilderPalette      .eb-palette
     BuilderCanvas       .eb-canvas > .eb-sheet

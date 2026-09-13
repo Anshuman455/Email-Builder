@@ -1,7 +1,7 @@
 /* ═══ EmailBuilder ═══
  *
  * The one component most hosts need. Wires the engine, provides context, mounts the full editor
- * chrome (toolbar, palette, canvas, inspector, drag layer) and handles keyboard shortcuts.
+ * chrome (palette, canvas with its command bar, inspector, drag layer) and handles keyboard shortcuts.
  *
  * Props are identical in React and Vue (VIEW-CONTRACT.md). */
 
@@ -10,13 +10,11 @@ import type { BlockDefinition, MergeField, MergeSyntax } from "@email-builder/co
 import type { Adapter, Editor } from "@email-builder/engine";
 import { EditorProvider, type BuilderTheme } from "../context";
 import { useEmailBuilder } from "../hooks/useEmailBuilder";
-import { BuilderToolbar } from "./BuilderToolbar";
 import { BuilderPalette } from "./BuilderPalette";
 import { BuilderCanvas } from "./BuilderCanvas";
 import { BuilderInspector } from "./BuilderInspector";
 import { BuilderPreview } from "./BuilderPreview";
 import { BuilderCodeView } from "./BuilderCodeView";
-import { PreflightPanel } from "./PreflightPanel";
 import { DragLayer } from "./DragLayer";
 
 export interface EmailBuilderProps {
@@ -32,18 +30,14 @@ export interface EmailBuilderProps {
   onChange?: (doc: unknown) => void;
   onReady?: (editor: Editor) => void;
   autosave?: { debounceMs?: number; maxWaitMs?: number; enabled?: boolean };
-  title?: string;
-  subtitle?: string;
-  badgeLabel?: string;
-  backLabel?: string;
-  onBack?: () => void;
   showPalette?: boolean;
   showInspector?: boolean;
+  /** Show the command bar (undo/redo, Desktop/Mobile, Code, Preview) above the email. Default true. */
   showToolbar?: boolean;
   className?: string;
 }
 
-type OverlayKind = "preview" | "code" | "preflight" | null;
+type OverlayKind = "preview" | "code" | null;
 
 export function EmailBuilder({
   document,
@@ -58,11 +52,6 @@ export function EmailBuilder({
   onChange,
   onReady,
   autosave,
-  title = "Monthly Newsletter",
-  subtitle = "A monthly update for our community",
-  badgeLabel = "EMAIL TEMPLATE",
-  backLabel = "Templates",
-  onBack,
   showPalette = true,
   showInspector = true,
   showToolbar = true,
@@ -151,27 +140,18 @@ export function EmailBuilder({
         data-eb-theme={theme}
         tabIndex={-1}
       >
-        {showToolbar && (
-          <BuilderToolbar
-            title={title}
-            subtitle={subtitle}
-            badgeLabel={badgeLabel}
-            backLabel={backLabel}
-            onBack={onBack}
-            onPreview={() => setOverlay("preview")}
-            onCodeView={() => setOverlay("code")}
-            onPreflight={() => setOverlay("preflight")}
-          />
-        )}
         <div className="email-builder__body eb-body">
           {showPalette && <BuilderPalette />}
-          <BuilderCanvas />
+          <BuilderCanvas
+            showToolbar={showToolbar}
+            onPreview={() => setOverlay("preview")}
+            onCodeView={() => setOverlay("code")}
+          />
           {showInspector && <BuilderInspector />}
         </div>
         <DragLayer />
         {overlay === "preview" && <BuilderPreview onClose={() => setOverlay(null)} />}
         {overlay === "code" && <BuilderCodeView onClose={() => setOverlay(null)} />}
-        {overlay === "preflight" && <PreflightPanel onClose={() => setOverlay(null)} />}
       </div>
     </EditorProvider>
   );

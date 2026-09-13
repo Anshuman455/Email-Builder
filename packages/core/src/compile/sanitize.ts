@@ -71,6 +71,33 @@ function cleanCss(css: string): string {
     .replace(/@import/gi, "");
 }
 
+/** The slice of a block definition this needs — structural, so the sanitiser stays import-free. */
+interface SchemaLike {
+  schema?: ReadonlyArray<{ target?: string; fields: ReadonlyArray<{ kind: string; key: string }> }>;
+}
+
+/** Author-editable markup kinds. `richtext` is HTML typed on the canvas; a stored document can put
+ *  anything in it, so it is cleaned before any renderer sees it. */
+const MARKUP_KINDS = new Set(["richtext"]);
+
+/** A copy of `content` with every markup field sanitised. Used by the compiler and by both canvas
+ *  previews, so the inbox and the editor render the same cleaned string. */
+export function sanitizeBlockContent<T extends Record<string, unknown>>(definition: SchemaLike | null | undefined, content: T): T {
+  if (!definition?.schema) return content;
+  let next: Record<string, unknown> | null = null;
+  for (const group of definition.schema) {
+    if (group.target && group.target !== "content") continue;
+    for (const field of group.fields) {
+      if (!MARKUP_KINDS.has(field.kind)) continue;
+      const value = content[field.key];
+      if (typeof value !== "string") continue;
+      const clean = sanitizeHtml(value);
+      if (clean !== value) (next ??= { ...content })[field.key] = clean;
+    }
+  }
+  return (next ?? content) as T;
+}
+
 /** Whether a string would change under sanitisation — used by preflight to warn rather than
  *  silently rewriting an author's markup. */
 export function isSanitary(input: string, options?: SanitizeOptions): boolean {

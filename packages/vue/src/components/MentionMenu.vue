@@ -8,6 +8,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { COMMON_FIELDS, type MergeField } from "@email-builder/core";
 import type { Editor } from "@email-builder/engine";
+import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{
   editor: Editor;
@@ -147,10 +148,8 @@ function formatToken(token: string) {
     </div>
 
     <div v-if="query" class="eb-mention-menu__search">
-      <span class="material-symbols-outlined" style="font-size: 14px; color: #94a3b8;">
-        search
-      </span>
-      <span style="font-size: 12px; color: #64748b;">Filter: &ldquo;{{ query }}&rdquo;</span>
+      <EbGlyph name="search" style="font-size: 14px; color: var(--eb-text-subtle);" />
+      <span style="font-size: 12px; color: var(--eb-text-muted);">Filter: &ldquo;{{ query }}&rdquo;</span>
     </div>
 
     <div class="eb-mention-menu__list">

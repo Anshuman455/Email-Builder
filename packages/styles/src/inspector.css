@@ -96,7 +96,7 @@ details.eb-group summary::-webkit-details-marker {
   display: none;
 }
 
-details.eb-group summary .material-symbols-outlined,
+details.eb-group summary .eb-glyph,
 .eb-group__chevron {
   width: 18px;
   height: 18px;
@@ -105,12 +105,12 @@ details.eb-group summary .material-symbols-outlined,
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color var(--eb-duration-fast) var(--eb-ease);
 }
 
-details.eb-group summary:hover .material-symbols-outlined,
+details.eb-group summary:hover .eb-glyph,
 .eb-group__header:hover .eb-group__chevron {
   color: var(--eb-text);
 }
 
-details.eb-group:not([open]) summary .material-symbols-outlined,
+details.eb-group:not([open]) summary .eb-glyph,
 .eb-group--collapsed .eb-group__chevron {
   transform: rotate(-90deg);
 }

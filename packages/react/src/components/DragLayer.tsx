@@ -25,8 +25,9 @@ export function DragLayer() {
   let label = "";
   let iconSvg = "";
   if (drag.active.kind === "block") {
-    const definition = editor.blocks.get(drag.active.blockId);
-    label = definition?.label ?? drag.active.blockId;
+    /* A block drag carries the instance id, not the type — look the type up in the document. */
+    const definition = editor.blocks.get(blockTypeOf(editor, drag.active.blockId) ?? "");
+    label = definition?.label ?? "Block";
     iconSvg = definition ? ICONS[definition.icon as keyof typeof ICONS] ?? "" : "";
   } else if (drag.active.kind === "palette") {
     const definition = editor.blocks.get(drag.active.blockType);
@@ -38,7 +39,18 @@ export function DragLayer() {
     label = drag.active.label ? `Row (${drag.active.label})` : "Row";
   }
 
-  const ind = drag.indicator;
+  /* An empty column's drop zone is its own "inside" feedback; a second box on top is noise. */
+  const overColumnId =
+    drag.over?.kind === "column" ? (drag.over as { columnId: string }).columnId : null;
+  const overEmptyColumn =
+    overColumnId !== null &&
+    editor.state
+      .get()
+      .document.rows.some((row) =>
+        row.columns.some((column) => column.id === overColumnId && column.blocks.length === 0),
+      );
+
+  const ind = overEmptyColumn ? null : drag.indicator;
   let indicatorStyle: React.CSSProperties | null = null;
   let indicatorClass = "eb-indicator";
   if (ind) {
@@ -88,4 +100,11 @@ export function DragLayer() {
       {indicatorStyle && <div className={indicatorClass} style={indicatorStyle} />}
     </Portal>
   );
+}
+
+function blockTypeOf(editor: ReturnType<typeof useEditor>, id: string): string | null {
+  for (const row of editor.getDocument().rows)
+    for (const column of row.columns)
+      for (const block of column.blocks) if (block.id === id) return block.type;
+  return null;
 }

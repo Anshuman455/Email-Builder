@@ -11,7 +11,7 @@ export type { EmailBuilderProps } from "./components/EmailBuilder";
 
 /* ── Composable pieces — for hosts that want to build a custom layout ── */
 export { BuilderToolbar } from "./components/BuilderToolbar";
-export type { BuilderToolbarProps } from "./components/BuilderToolbar";
+export type { BuilderToolbarProps, BuilderDevice } from "./components/BuilderToolbar";
 
 export { BuilderPalette } from "./components/BuilderPalette";
 export { BuilderCanvas } from "./components/BuilderCanvas";
@@ -35,8 +35,6 @@ export type { BuilderPreviewProps } from "./components/BuilderPreview";
 export { BuilderCodeView } from "./components/BuilderCodeView";
 export type { BuilderCodeViewProps } from "./components/BuilderCodeView";
 
-export { PreflightPanel } from "./components/PreflightPanel";
-export type { PreflightPanelProps } from "./components/PreflightPanel";
 
 export { DragLayer } from "./components/DragLayer";
 

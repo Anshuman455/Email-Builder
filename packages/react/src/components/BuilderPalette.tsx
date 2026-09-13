@@ -5,13 +5,14 @@
  * Blocks has:
  *  - Layouts: 6 thumbnail cards with span previews
  *  - Dynamically grouped generic blocks (Content, Layout, etc.)
- * All with Google Material Symbols Outlined icons.
+ * Icons are the engine's inline SVG set (see Glyph) — no icon font to load.
  */
 
 import { useMemo, useState } from "react";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { useDraggable } from "../hooks/useDnd";
+import { Glyph } from "./Glyph";
 
 const ROW_LAYOUTS = [
   { layout: "1", label: "Full width", spans: [1] },
@@ -95,9 +96,7 @@ function PaletteBlock({ block }: { block: { type: string; label: string; icon: s
             dangerouslySetInnerHTML={{ __html: block.icon }}
           />
         ) : (
-          <span className="material-symbols-outlined" aria-hidden="true">
-            {block.icon || BLOCK_ICONS[block.type] || "widgets"}
-          </span>
+          <Glyph name={block.icon || BLOCK_ICONS[block.type] || "widgets"} />
         )}
       </span>
       <span className="palette-block__label">{block.label}</span>
@@ -142,6 +141,7 @@ function PaletteRowItem({ item }: { item: { layout: string; label: string; spans
 
 export function BuilderPalette({ className }: { className?: string }) {
   const editor = useEditor();
+  const t = useTranslator();
   const [activeTab, setActiveTab] = useState<"blocks" | "structure">("blocks");
   const document = useEditorSelector((state) => state.document);
   const selection = useEditorSelector((state) => state.selection);
@@ -162,7 +162,7 @@ export function BuilderPalette({ className }: { className?: string }) {
   const paletteClasses = ["builder-palette", className ?? ""].filter(Boolean).join(" ");
 
   return (
-    <aside className={paletteClasses} aria-label="Palette">
+    <aside className={paletteClasses} aria-label={t("palette.label")}>
       {/* Tabs */}
       <div
         className="builder-palette__tabs"
@@ -234,7 +234,7 @@ export function BuilderPalette({ className }: { className?: string }) {
                 onClick={() => editor.select({ kind: "row", id: row.id })}
               >
                 <div className="structure-row__header">
-                  <span className="material-symbols-outlined" aria-hidden="true">table_rows</span>
+                  <Glyph name="table_rows" />
                   <span>Row {rIndex + 1}</span>
                   <span className="structure-row__badge">{row.columns.length} col</span>
                 </div>
@@ -249,7 +249,7 @@ export function BuilderPalette({ className }: { className?: string }) {
                           editor.select({ kind: "column", id: col.id });
                         }}
                       >
-                        <span className="material-symbols-outlined" aria-hidden="true">view_column</span>
+                        <Glyph name="view_column" />
                         <span>Column {cIndex + 1}</span>
                         <span className="structure-column__badge">{col.blocks.length}</span>
                       </div>
@@ -265,9 +265,7 @@ export function BuilderPalette({ className }: { className?: string }) {
                                 editor.select({ kind: "block", id: b.id });
                               }}
                             >
-                              <span className="material-symbols-outlined" aria-hidden="true">
-                                {BLOCK_ICONS[b.type] || "widgets"}
-                              </span>
+                              <Glyph name={BLOCK_ICONS[b.type] || "widgets"} />
                               <span>{editor.blocks.get(b.type)?.label || b.type}</span>
                             </div>
                           ))}

@@ -11,7 +11,7 @@ import { GENERIC_FIELDS, CUSTOM_BLOCKS, adapter, SEED } from "demo-shared";
 import "@email-builder/styles";
 import "./demo.css";
 
-const STORAGE_KEY = "email-builder.vue.demo.v2";
+const STORAGE_KEY = "email-builder.vue.demo.v3";
 
 function load() {
   try {
@@ -36,10 +36,6 @@ async function onSave(design) {
   <div class="app-container">
     <EmailBuilder
       :document="seed"
-      title="Monthly Newsletter"
-      subtitle="A monthly update for our community"
-      badge-label="EMAIL TEMPLATE"
-      back-label="Templates"
       :theme="theme"
       :blocks="CUSTOM_BLOCKS"
       :merge-fields="GENERIC_FIELDS"

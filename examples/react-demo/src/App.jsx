@@ -5,7 +5,7 @@ import { GENERIC_FIELDS, CUSTOM_BLOCKS, adapter, SEED } from "demo-shared";
 import "@email-builder/styles";
 import "./demo.css";
 
-const STORAGE_KEY = "email-builder.react.demo.v2";
+const STORAGE_KEY = "email-builder.react.demo.v3";
 
 function load() {
   try {
@@ -29,10 +29,6 @@ export default function App() {
     <div className="app-container">
       <EmailBuilder
         document={load()}
-        title="Monthly Newsletter"
-        subtitle="A monthly update for our community"
-        badgeLabel="EMAIL TEMPLATE"
-        backLabel="Templates"
         theme={theme}
         blocks={CUSTOM_BLOCKS}
         mergeFields={GENERIC_FIELDS}

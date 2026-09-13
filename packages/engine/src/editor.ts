@@ -123,6 +123,8 @@ export interface Editor {
   getSelectedBlock(): Block | null;
   getSelectedRow(): Row | null;
   getSchema(): FieldGroup[];
+  /** Apply a drop exactly as a pointer drop would — for custom drag UIs, keyboard flows and tests. */
+  drop(event: DropEvent): void;
   compile(options?: CompileOptions): CompileResult;
   preflight(): PreflightIssue[];
 
@@ -263,7 +265,7 @@ export function createEditor(options: EditorOptions): Editor {
       if (!block) return;
       const landing = resolveBlockLanding(doc, target, edge);
       if (!landing) return;
-      commit(insertBlockOp(doc, block, landing.columnId, landing.index), "block:add");
+      commit(insertBlockOp(landing.doc, block, landing.columnId, landing.index), "block:add");
       select({ kind: "block", id: block.id });
       land(block.id);
       events.emit("block:add", { block, columnId: landing.columnId });
@@ -274,7 +276,7 @@ export function createEditor(options: EditorOptions): Editor {
     if (source.kind === "block") {
       const landing = resolveBlockLanding(doc, target, edge);
       if (!landing) return;
-      commit(moveBlockOp(doc, source.blockId, landing.columnId, landing.index), "block:move");
+      commit(moveBlockOp(landing.doc, source.blockId, landing.columnId, landing.index), "block:move");
       land(source.blockId);
       return;
     }
@@ -324,24 +326,26 @@ export function createEditor(options: EditorOptions): Editor {
     doc: EmailDocument,
     target: DropEvent["target"],
     edge: DropEvent["edge"],
-  ): { columnId: string; index: number } | null {
+  ): { doc: EmailDocument; columnId: string; index: number } | null {
     if (target.kind === "column") {
       const found = findColumn(doc, target.columnId);
-      return found ? { columnId: target.columnId, index: found.column.blocks.length } : null;
+      return found ? { doc, columnId: target.columnId, index: found.column.blocks.length } : null;
     }
     if (target.kind === "block") {
       const found = findBlock(doc, target.blockId);
       if (!found) return null;
-      return { columnId: found.column.id, index: edge === "before" ? found.blockIndex : found.blockIndex + 1 };
+      return { doc, columnId: found.column.id, index: edge === "before" ? found.blockIndex : found.blockIndex + 1 };
     }
-    /* A block dropped on a row slot gets a row of its own — the alternative is silently
-       discarding the drop, which reads as the editor being broken. */
+    /* A block dropped on a row slot (or a row's own edge) gets a row of its own — the alternative
+       is silently discarding the drop, which reads as the editor being broken.
+       The new row is returned inside `doc` rather than committed here: the caller's insert or
+       move must operate on the document that contains the row. Operating on the original `doc`
+       could not find the new column, returned it unchanged, and threw the drop away. It also
+       keeps "add row + place block" as one undo step. */
     if (target.kind === "row-slot" || target.kind === "row") {
-      const index = target.kind === "row-slot" ? target.index : target.index;
+      const index = target.kind === "row" && edge === "after" ? target.index + 1 : target.index;
       const { doc: withRow, row } = addRowOp(doc, [1], index);
-      history = pushHistory(history, withRow, { label: "row:add" });
-      publish("row:add");
-      return { columnId: row.columns[0]!.id, index: 0 };
+      return { doc: withRow, columnId: row.columns[0]!.id, index: 0 };
     }
     return null;
   }
@@ -388,6 +392,8 @@ export function createEditor(options: EditorOptions): Editor {
       if (!block) return [];
       return blocks.schemaFor(block, history.present);
     },
+
+    drop: (event) => applyDrop(event),
 
     compile: (compileOptions) => compile(history.present, { blocks, merge }, compileOptions),
     preflight: () => preflightDoc(history.present, { blocks, merge }),

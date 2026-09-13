@@ -5,7 +5,22 @@
   "license": "MIT",
   "main": "./dist/email-builder.css",
   "style": "./dist/email-builder.css",
-  "exports": { ".": "./dist/email-builder.css", "./css": "./dist/email-builder.css" },
-  "files": ["dist", "src"],
-  "scripts": { "build": "node build.mjs" }
+  "exports": {
+    ".": "./dist/email-builder.css",
+    "./css": "./dist/email-builder.css",
+    "./layered": "./dist/email-builder.layered.css",
+    "./variables": "./dist/variables.css"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/styles"
+  }
 }

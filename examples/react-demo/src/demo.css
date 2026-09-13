@@ -20,3 +20,8 @@ body {
   flex: 1;
   min-height: 0;
 }
+
+/* Theming the builder is setting its variables — here, handing it the app's font. */
+.app-container .email-builder {
+  --eb-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}

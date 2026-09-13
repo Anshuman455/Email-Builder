@@ -26,7 +26,7 @@ import type { BlockRegistry } from "../registry";
 import type { MergeRegistry } from "../merge/registry";
 import { columnWidths } from "../document/operations";
 import { escapeAttr, escapeHtml, minifyHtml, mso, notMso, safeUrl, stripTags, styleAttr } from "../util/html";
-import { sanitizeHtml } from "./sanitize";
+import { sanitizeBlockContent, sanitizeHtml } from "./sanitize";
 import { wrapDocument } from "./shell";
 import { toPlainText } from "./plain-text";
 
@@ -77,6 +77,9 @@ function renderBlock(
   }
 
   const ctx = makeContext(block, settings, width, options.preview, options.merge);
+  /* Rich-text fields hold author (or stored) HTML — clean them before any renderer, built-in or
+     host-registered, can interpolate them. */
+  ctx.content = sanitizeBlockContent(definition, ctx.content);
   const renderer = options.preview && definition.preview ? definition.preview : definition.render;
 
   let html: string;

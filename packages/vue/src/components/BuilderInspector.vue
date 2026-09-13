@@ -15,14 +15,16 @@
 
 import { computed, ref } from "vue";
 import type { FieldGroup } from "@email-builder/core";
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
 import { rowGroups, columnGroups, LAYOUT_KEY, layoutValue, parseLayout } from "../schemas";
 import BuilderField from "./BuilderField.vue";
+import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{ class?: string }>();
 
 const editor = useEditor();
+const t = useTranslator(editor);
 
 const selection = useEditorSelector((state) => state.selection);
 const document = useEditorSelector((state) => state.document);
@@ -134,12 +136,12 @@ function deselect() {
 </script>
 
 <template>
-  <aside class="builder-inspector" aria-label="Inspector">
+  <aside class="builder-inspector" :aria-label="t('inspector.label')">
     <!-- Email Settings Header (when nothing selected or settings) -->
     <header v-if="!selectionKind || selectionKind === 'settings'" class="builder-inspector__header">
       <div class="builder-inspector__header-title">
         <span class="builder-inspector__header-icon">
-          <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+          <EbGlyph name="tune" />
         </span>
         <div>
           <span class="builder-inspector__title-main">Email Settings</span>
@@ -152,9 +154,7 @@ function deselect() {
     <header v-else-if="selectionKind === 'block' && selectedBlock" class="builder-inspector__header">
       <div class="builder-inspector__header-title">
         <span class="builder-inspector__header-icon">
-          <span class="material-symbols-outlined" aria-hidden="true">
-            {{ ICONS_MAP[selectedBlock.type] || "widgets" }}
-          </span>
+          <EbGlyph :name="ICONS_MAP[selectedBlock.type] || 'widgets'" />
         </span>
         <div>
           <span class="builder-inspector__title-main">
@@ -166,10 +166,10 @@ function deselect() {
       <button
         type="button"
         class="builder-inspector__nav-btn"
-        title="Back to Email Settings"
+        :title="t('inspector.back')"
         @click="deselect"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <EbGlyph name="arrow_back" />
         <span>All Settings</span>
       </button>
     </header>
@@ -178,7 +178,7 @@ function deselect() {
     <header v-else-if="selectionKind === 'row' && selectedRow" class="builder-inspector__header">
       <div class="builder-inspector__header-title">
         <span class="builder-inspector__header-icon">
-          <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>
+          <EbGlyph name="table_rows" />
         </span>
         <div>
           <span class="builder-inspector__title-main">Row Settings</span>
@@ -188,10 +188,10 @@ function deselect() {
       <button
         type="button"
         class="builder-inspector__nav-btn"
-        title="Back to Email Settings"
+        :title="t('inspector.back')"
         @click="deselect"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <EbGlyph name="arrow_back" />
         <span>All Settings</span>
       </button>
     </header>
@@ -203,21 +203,19 @@ function deselect() {
         <!-- Canvas Quick Tips -->
         <div class="inspector-legend">
           <div class="inspector-legend__header">
-            <span class="material-symbols-outlined inspector-legend__header-icon" aria-hidden="true">
-              lightbulb
-            </span>
+            <EbGlyph name="lightbulb" class="inspector-legend__header-icon" />
             <span class="inspector-legend__header-title">Canvas Quick Tips</span>
           </div>
           <div class="inspector-legend__items">
             <div class="inspector-legend__item">
               <span class="inspector-legend__item-badge">
-                <span class="material-symbols-outlined" aria-hidden="true">widgets</span>
+                <EbGlyph name="widgets" />
               </span>
               <span>Click any block to customize its text, styling &amp; colors</span>
             </div>
             <div class="inspector-legend__item">
               <span class="inspector-legend__item-badge">
-                <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>
+                <EbGlyph name="table_rows" />
               </span>
               <span>Click outer space around content to edit row layout</span>
             </div>
@@ -228,37 +226,37 @@ function deselect() {
         <details class="eb-group" open>
           <summary class="eb-group__header">
             Brand
-            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 14px; padding: 12px 16px;">
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151;">Font</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--eb-text-secondary);">Font</label>
               <select
                 :value="settings.fontFamily || GLOBAL_FONTS[0]!.value"
-                style="width: 100%; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 10px; font-size: 13px; background: #fff;"
+                style="width: 100%; height: 36px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 10px; font-size: 13px; background: var(--eb-surface);"
                 @change="updateSettings({ fontFamily: ($event.target as HTMLSelectElement).value })"
               >
                 <option v-for="f in GLOBAL_FONTS" :key="f.value" :value="f.value">{{ f.label }}</option>
               </select>
-              <span style="display: block; font-size: 11px; color: #9ca3af; margin-top: 4px;">
+              <span style="display: block; font-size: 11px; color: var(--eb-text-subtle); margin-top: 4px;">
                 Web-safe fonts only — custom fonts do not render in Outlook.
               </span>
             </div>
 
             <!-- Text Colour -->
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Text colour</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--eb-text-secondary);">Text colour</label>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <input
                   type="color"
                   :value="settings.textColor || '#333333'"
-                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--eb-border); padding: 0; cursor: pointer;"
                   @input="updateSettings({ textColor: ($event.target as HTMLInputElement).value })"
                 />
                 <input
                   type="text"
                   :value="settings.textColor || '#333333'"
-                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  style="flex: 1; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
                   @change="updateSettings({ textColor: ($event.target as HTMLInputElement).value })"
                 />
               </div>
@@ -272,7 +270,7 @@ function deselect() {
                     height: '18px',
                     borderRadius: '50%',
                     backgroundColor: c,
-                    border: '1px solid rgba(0,0,0,0.1)',
+                    border: '1px solid color-mix(in srgb, var(--eb-shadow-color) 10%, transparent)',
                     cursor: 'pointer'
                   }"
                   @click="updateSettings({ textColor: c })"
@@ -282,18 +280,18 @@ function deselect() {
 
             <!-- Link Colour -->
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Link colour</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--eb-text-secondary);">Link colour</label>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <input
                   type="color"
                   :value="settings.linkColor || '#0066cc'"
-                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--eb-border); padding: 0; cursor: pointer;"
                   @input="updateSettings({ linkColor: ($event.target as HTMLInputElement).value })"
                 />
                 <input
                   type="text"
                   :value="settings.linkColor || '#0066cc'"
-                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  style="flex: 1; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
                   @change="updateSettings({ linkColor: ($event.target as HTMLInputElement).value })"
                 />
               </div>
@@ -307,7 +305,7 @@ function deselect() {
                     height: '18px',
                     borderRadius: '50%',
                     backgroundColor: c,
-                    border: '1px solid rgba(0,0,0,0.1)',
+                    border: '1px solid color-mix(in srgb, var(--eb-shadow-color) 10%, transparent)',
                     cursor: 'pointer'
                   }"
                   @click="updateSettings({ linkColor: c })"
@@ -321,39 +319,39 @@ function deselect() {
         <details class="eb-group">
           <summary class="eb-group__header">
             Background
-            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 12px; padding: 12px 16px;">
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Page background</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--eb-text-secondary);">Page background</label>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <input
                   type="color"
                   :value="settings.backgroundColor || '#f4f4f5'"
-                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--eb-border); padding: 0; cursor: pointer;"
                   @input="updateSettings({ backgroundColor: ($event.target as HTMLInputElement).value })"
                 />
                 <input
                   type="text"
                   :value="settings.backgroundColor || '#f4f4f5'"
-                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  style="flex: 1; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
                   @change="updateSettings({ backgroundColor: ($event.target as HTMLInputElement).value })"
                 />
               </div>
             </div>
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151;">Email background</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--eb-text-secondary);">Email background</label>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <input
                   type="color"
                   :value="settings.contentBackgroundColor || '#ffffff'"
-                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e5e7eb; padding: 0; cursor: pointer;"
+                  style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--eb-border); padding: 0; cursor: pointer;"
                   @input="updateSettings({ contentBackgroundColor: ($event.target as HTMLInputElement).value })"
                 />
                 <input
                   type="text"
                   :value="settings.contentBackgroundColor || '#ffffff'"
-                  style="flex: 1; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
+                  style="flex: 1; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 8px; font-family: monospace; font-size: 12px;"
                   @change="updateSettings({ contentBackgroundColor: ($event.target as HTMLInputElement).value })"
                 />
               </div>
@@ -365,23 +363,23 @@ function deselect() {
         <details class="eb-group" open>
           <summary class="eb-group__header">
             Canvas Sizing &amp; Width
-            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body" style="display: flex; flex-direction: column; gap: 14px; padding: 12px 16px;">
             <div>
-              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151;">Width</label>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--eb-text-secondary);">Width</label>
               <div style="display: flex; align-items: center; gap: 4px;">
                 <input
                   type="number"
                   :value="settings.contentWidth || 600"
                   min="320"
                   max="800"
-                  style="width: 100%; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0 10px; font-size: 13px;"
+                  style="width: 100%; height: 36px; border: 1px solid var(--eb-border); border-radius: 6px; padding: 0 10px; font-size: 13px;"
                   @change="updateSettings({ contentWidth: Number(($event.target as HTMLInputElement).value) })"
                 />
-                <span style="font-size: 12px; color: #6b7280; font-weight: 500;">px</span>
+                <span style="font-size: 12px; color: var(--eb-text-muted); font-weight: 500;">px</span>
               </div>
-              <span style="display: block; font-size: 11px; color: #9ca3af; margin-top: 4px;">
+              <span style="display: block; font-size: 11px; color: var(--eb-text-subtle); margin-top: 4px;">
                 600px is what every email client agrees on. Change it only if you know why.
               </span>
             </div>
@@ -389,57 +387,55 @@ function deselect() {
             <!-- Padding TRBL -->
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label style="font-size: 12px; font-weight: 600; color: #374151;">Padding</label>
+                <label style="font-size: 12px; font-weight: 600; color: var(--eb-text-secondary);">Padding</label>
                 <button
                   type="button"
                   :style="{
                     border: 'none',
                     background: 'none',
                     cursor: 'pointer',
-                    color: isPaddingLinked ? '#2563eb' : '#9ca3af'
+                    color: isPaddingLinked ? 'var(--eb-accent)' : 'var(--eb-text-subtle)'
                   }"
                   :title="isPaddingLinked ? 'Unlink padding sides' : 'Link all padding sides'"
                   @click="isPaddingLinked = !isPaddingLinked"
                 >
-                  <span class="material-symbols-outlined" style="font-size: 16px;">
-                    {{ isPaddingLinked ? 'link' : 'link_off' }}
-                  </span>
+                  <EbGlyph :name="isPaddingLinked ? 'link' : 'link_off'" style="font-size: 16px;" />
                 </button>
               </div>
               <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center;">
                 <div>
-                  <span style="font-size: 10px; color: #9ca3af; display: block;">T</span>
+                  <span style="font-size: 10px; color: var(--eb-text-subtle); display: block;">T</span>
                   <input
                     type="number"
                     :value="(settings as any)?.padding?.top ?? 24"
-                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    style="width: 100%; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; text-align: center; font-size: 12px;"
                     @change="updatePadding('top', Number(($event.target as HTMLInputElement).value))"
                   />
                 </div>
                 <div>
-                  <span style="font-size: 10px; color: #9ca3af; display: block;">R</span>
+                  <span style="font-size: 10px; color: var(--eb-text-subtle); display: block;">R</span>
                   <input
                     type="number"
                     :value="(settings as any)?.padding?.right ?? 24"
-                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    style="width: 100%; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; text-align: center; font-size: 12px;"
                     @change="updatePadding('right', Number(($event.target as HTMLInputElement).value))"
                   />
                 </div>
                 <div>
-                  <span style="font-size: 10px; color: #9ca3af; display: block;">B</span>
+                  <span style="font-size: 10px; color: var(--eb-text-subtle); display: block;">B</span>
                   <input
                     type="number"
                     :value="(settings as any)?.padding?.bottom ?? 24"
-                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    style="width: 100%; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; text-align: center; font-size: 12px;"
                     @change="updatePadding('bottom', Number(($event.target as HTMLInputElement).value))"
                   />
                 </div>
                 <div>
-                  <span style="font-size: 10px; color: #9ca3af; display: block;">L</span>
+                  <span style="font-size: 10px; color: var(--eb-text-subtle); display: block;">L</span>
                   <input
                     type="number"
                     :value="(settings as any)?.padding?.left ?? 24"
-                    style="width: 100%; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 12px;"
+                    style="width: 100%; height: 32px; border: 1px solid var(--eb-border); border-radius: 6px; text-align: center; font-size: 12px;"
                     @change="updatePadding('left', Number(($event.target as HTMLInputElement).value))"
                   />
                 </div>
@@ -459,7 +455,7 @@ function deselect() {
         >
           <summary class="eb-group__header">
             {{ group.title }}
-            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body">
             <template v-for="(field, fi) in group.fields" :key="field.key">
@@ -505,7 +501,7 @@ function deselect() {
         >
           <summary class="eb-group__header">
             {{ group.title }}
-            <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+            <EbGlyph name="expand_more" style="font-size: 18px;" />
           </summary>
           <div class="eb-group__body">
             <BuilderField

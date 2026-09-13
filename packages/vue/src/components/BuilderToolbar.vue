@@ -1,205 +1,93 @@
 <script setup lang="ts">
 /* ═══ BuilderToolbar ═══
  *
- * Modern top toolbar:
- * Left: Back button (optional), Title, "EMAIL TEMPLATE" badge, Subtitle, Undo/Redo pill group, Save status
- * Right: AI Assistant (optional), Import (optional), Code, Ready status, Preview
- */
+ * The command bar above the email: history on the left, the viewport switch in the
+ * middle, output actions on the right. It lives in the canvas column rather than across the top of
+ * the page, so the builder brings no app header of its own into a host's layout.
+ *
+ * `v-model:device` binds the viewport; `preview` and `code` are emitted. */
 
-import { computed, useAttrs } from "vue";
 import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../composables";
+import EbGlyph from "./EbGlyph.vue";
 
-const props = withDefaults(
-  defineProps<{
-    title?: string;
-    subtitle?: string;
-    badgeLabel?: string;
-    backLabel?: string;
-    onBack?: () => void;
-    class?: string;
-  }>(),
-  {
-    title: "Monthly Newsletter",
-    subtitle: "A monthly update for our community",
-    badgeLabel: "EMAIL TEMPLATE",
-    backLabel: "Templates",
-  },
-);
+defineProps<{ device: "desktop" | "mobile"; width: number }>();
 
 const emit = defineEmits<{
+  "update:device": [device: "desktop" | "mobile"];
   preview: [];
   code: [];
-  preflight: [];
-  import: [];
-  ai: [];
-  back: [];
 }>();
-
-const attrs = useAttrs();
-const hasBack = computed(() => Boolean(props.onBack || attrs.onBack));
-const hasAi = computed(() => Boolean(attrs.onAi));
-const hasImport = computed(() => Boolean(attrs.onImport));
 
 const editor = useEditor();
 const t = useTranslator(editor);
 
 const canUndo = useEditorSelector((state) => state.canUndo);
 const canRedo = useEditorSelector((state) => state.canRedo);
-const saveStatus = useEditorSelector((state) => state.saveStatus);
 
-const statusTone = computed(() => {
-  const s = saveStatus.value;
-  if (s === "error") return "error";
-  if (s === "saving") return "busy";
-  if (s === "dirty") return "dirty";
-  return "saved";
-});
-
-const statusIcon = computed(() => {
-  const s = saveStatus.value;
-  if (s === "error") return "error";
-  if (s === "saving") return "sync";
-  if (s === "dirty") return "edit";
-  return "cloud_done";
-});
-
-const statusLabel = computed(() => {
-  const s = saveStatus.value;
-  if (s === "dirty") return "Unsaved changes";
-  if (s === "saving") return "Saving…";
-  if (s === "error") return "Save error";
-  return "Saved 30s ago";
-});
-
-function handleBack() {
-  if (props.onBack) props.onBack();
-  else emit("back");
-}
+const DEVICES = ["desktop", "mobile"] as const;
 </script>
 
 <template>
-  <header class="builder-toolbar">
-    <!-- Left: Back button, Title & Badge, Undo/Redo, Save status -->
-    <div class="builder-toolbar__side">
-      <template v-if="hasBack">
+  <div class="eb-commandbar" role="toolbar" :aria-label="t('toolbar.label')" @click.stop>
+    <div class="eb-commandbar__start">
+      <div class="eb-commandbar__group">
         <button
           type="button"
-          class="builder-toolbar__back-btn"
-          :title="`Back to ${backLabel}`"
-          @click="handleBack"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-          <span class="builder-toolbar__back-label">{{ backLabel }}</span>
-        </button>
-
-        <span class="builder-toolbar__divider" aria-hidden="true" />
-      </template>
-
-      <div class="builder-toolbar__title-meta">
-        <div class="builder-toolbar__title-row">
-          <span class="builder-toolbar__title-text" :title="title">{{ title }}</span>
-          <span v-if="badgeLabel" class="builder-toolbar__badge">{{ badgeLabel }}</span>
-        </div>
-        <span v-if="subtitle" class="builder-toolbar__subtitle-text" :title="subtitle">
-          {{ subtitle }}
-        </span>
-      </div>
-
-      <span class="builder-toolbar__divider" aria-hidden="true" />
-
-      <!-- Undo / Redo group -->
-      <div class="builder-toolbar__undo-group" role="group" aria-label="Undo and Redo">
-        <button
-          type="button"
-          class="builder-toolbar__undo-btn"
+          class="eb-commandbar__icon-btn"
           :disabled="!canUndo"
-          aria-label="Undo (⌘Z)"
-          title="Undo (⌘Z)"
+          :aria-label="t('toolbar.undo')"
+          :title="`${t('toolbar.undo')} (⌘Z)`"
           @click="editor.undo()"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">undo</span>
+          <EbGlyph name="undo" />
         </button>
-        <span class="builder-toolbar__undo-sep" aria-hidden="true" />
         <button
           type="button"
-          class="builder-toolbar__undo-btn"
+          class="eb-commandbar__icon-btn"
           :disabled="!canRedo"
-          aria-label="Redo (⌘⇧Z)"
-          title="Redo (⌘⇧Z)"
+          :aria-label="t('toolbar.redo')"
+          :title="`${t('toolbar.redo')} (⌘⇧Z)`"
           @click="editor.redo()"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">redo</span>
-        </button>
-      </div>
-
-      <span class="builder-toolbar__divider" aria-hidden="true" />
-
-      <!-- Save status badge -->
-      <div :class="['builder-toolbar__status', `builder-toolbar__status--${statusTone}`]">
-        <span class="material-symbols-outlined builder-toolbar__status-icon" aria-hidden="true">
-          {{ statusIcon }}
-        </span>
-        <span class="builder-toolbar__status-label">{{ statusLabel }}</span>
-      </div>
-    </div>
-
-    <!-- Right: AI, Import, Code, Ready, Preview -->
-    <div class="builder-toolbar__side builder-toolbar__side--end">
-      <div class="builder-toolbar__group">
-        <button
-          v-if="hasAi"
-          type="button"
-          class="builder-toolbar__pill builder-toolbar__pill--ai"
-          title="Write or polish with AI Assistant"
-          @click="emit('ai')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-          <span class="builder-toolbar__pill-label">AI Assistant</span>
-        </button>
-
-        <button
-          v-if="hasImport"
-          type="button"
-          class="builder-toolbar__pill"
-          title="Import Template"
-          @click="emit('import')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">file_upload</span>
-          <span class="builder-toolbar__pill-label">Import</span>
-        </button>
-
-        <button
-          type="button"
-          class="builder-toolbar__pill"
-          title="View Code"
-          @click="emit('code')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">code</span>
-          <span class="builder-toolbar__pill-label">Code</span>
-        </button>
-
-        <button
-          type="button"
-          class="builder-toolbar__pill builder-toolbar__pill--preflight builder-toolbar__pill--ready"
-          title="Preflight checks"
-          @click="emit('preflight')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
-          <span class="builder-toolbar__pill-label">Ready</span>
-        </button>
-
-        <button
-          type="button"
-          class="builder-toolbar__pill builder-toolbar__pill--preview"
-          title="Preview (⌘P)"
-          @click="emit('preview')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
-          <span class="builder-toolbar__pill-label">Preview</span>
+          <EbGlyph name="redo" />
         </button>
       </div>
     </div>
-  </header>
+
+    <div class="eb-commandbar__center">
+      <div class="eb-commandbar__segmented" role="radiogroup" :aria-label="t('toolbar.viewport')">
+        <button
+          v-for="option in DEVICES"
+          :key="option"
+          type="button"
+          role="radio"
+          :aria-checked="device === option"
+          :class="['eb-commandbar__segment', device === option ? 'eb-commandbar__segment--active' : '']"
+          :title="t(`toolbar.${option}`)"
+          @click="emit('update:device', option)"
+        >
+          <EbGlyph :name="option === 'desktop' ? 'desktop' : 'smartphone'" />
+          <span class="eb-commandbar__label">{{ t(`toolbar.${option}`) }}</span>
+        </button>
+      </div>
+      <span class="eb-commandbar__width">{{ width }}px</span>
+    </div>
+
+    <div class="eb-commandbar__end">
+      <button type="button" class="eb-commandbar__btn" :title="t('toolbar.code')" @click="emit('code')">
+        <EbGlyph name="code" />
+        <span class="eb-commandbar__label">{{ t("toolbar.code") }}</span>
+      </button>
+      <button
+        type="button"
+        class="eb-commandbar__btn eb-commandbar__btn--primary"
+        :title="`${t('toolbar.preview')} (⌘P)`"
+        @click="emit('preview')"
+      >
+        <EbGlyph name="visibility" />
+        <span class="eb-commandbar__label">{{ t("toolbar.preview") }}</span>
+      </button>
+    </div>
+  </div>
 </template>
-

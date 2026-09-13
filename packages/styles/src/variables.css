@@ -1,0 +1,242 @@
+/* ══════════════════════════════ Variables ══════════════════════════════
+ *
+ * The ONLY file in this package allowed to contain a colour literal. Every other stylesheet reads
+ * `var(--eb-*)` and nothing else — `npm run build` fails if a hex, rgb() or hsl() value shows up
+ * anywhere but here.
+ *
+ * Two tiers:
+ *
+ *   1. Palette  (--eb-gray-500, --eb-brand-600 …)  Raw values. Internal — do not reference these
+ *      from a host app, and do not use them in component CSS either.
+ *   2. Semantic (--eb-surface, --eb-text, --eb-accent …)  What the stylesheets actually use, and
+ *      the public theming API. To make the builder match a host application, override these:
+ *
+ *        .eb-root {
+ *          --eb-accent: var(--app-primary);
+ *          --eb-font: inherit;
+ *          --eb-radius: var(--app-radius);
+ *        }
+ *
+ *      Derived tokens (--eb-accent-soft, --eb-accent-ring …) are computed from their base with
+ *      color-mix(), so overriding --eb-accent alone re-tints every hover, ring and fill.
+ *
+ * Scoped to `.eb-root` and never `:root`: the builder must not leak custom properties into the
+ * host page. Portalled overlays re-declare `.eb-root` on their wrapper for the same reason.
+ *
+ * ⚠️ These style the EDITOR CHROME only. The email's own markup is inline-styled by
+ * @email-builder/core and shares nothing with this file.
+ *
+ * ════════════════════════════════════════════════════════════════════════════════════════ */
+
+.eb-root {
+  /* ─────────────────────────── 1. Palette (internal) ─────────────────────────── */
+
+  --eb-white: #ffffff;
+  --eb-black: #000000;
+
+  --eb-gray-50: #f9fafb;
+  --eb-gray-100: #f3f4f6;
+  --eb-gray-200: #e5e7eb;
+  --eb-gray-300: #d1d5db;
+  --eb-gray-400: #9ca3af;
+  --eb-gray-500: #6b7280;
+  --eb-gray-700: #374151;
+  --eb-gray-800: #1f2937;
+  --eb-gray-900: #111827;
+
+  --eb-brand-300: #8ea2a6;
+  --eb-brand-400: #728b8f;
+  --eb-brand-450: #5f7477;
+  --eb-brand-500: #506264;
+  --eb-brand-600: #394648;
+  --eb-brand-800: #2b3537;
+
+  --eb-red-50: #fef2f2;
+  --eb-red-500: #ef4444;
+  --eb-red-700: #c61111;
+
+  --eb-amber-50: #fffbeb;
+  --eb-amber-500: #f59e0b;
+  --eb-amber-600: #d97706;
+  --eb-amber-800: #92400e;
+
+  --eb-emerald-50: #ecfdf5;
+  --eb-emerald-200: #b6f9e3;
+  --eb-emerald-500: #10b981;
+  --eb-emerald-700: #0b815a;
+
+  --eb-cyan-500: #01a7c2;
+  --eb-cyan-600: #018da4;
+  --eb-sky-100: #e0f2fe;
+  --eb-sky-600: #0284c7;
+  --eb-blue-500: #3b82f6;
+  --eb-lime-200: #f1ff97;
+
+  /* ─────────────────────────── 2. Semantic (public) ─────────────────────────── */
+
+  /* Surfaces */
+  --eb-bg: var(--eb-gray-100);
+  --eb-surface: var(--eb-white);
+  --eb-surface-subtle: var(--eb-gray-50);
+  --eb-surface-sunken: var(--eb-gray-100);
+  --eb-surface-raised: var(--eb-white);
+  --eb-surface-inverse: var(--eb-gray-900);
+  --eb-overlay: color-mix(in srgb, var(--eb-gray-900) 45%, transparent);
+
+  /* Ink */
+  --eb-text: var(--eb-gray-900);
+  --eb-text-secondary: var(--eb-gray-700);
+  --eb-text-muted: var(--eb-gray-500);
+  --eb-text-subtle: var(--eb-gray-400);
+  --eb-text-inverse: var(--eb-white);
+
+  /* Lines */
+  --eb-border: var(--eb-gray-200);
+  --eb-border-strong: var(--eb-gray-300);
+
+  /* Accent — the host's primary colour goes here */
+  --eb-accent: var(--eb-brand-600);
+  --eb-accent-hover: var(--eb-brand-800);
+  --eb-accent-line: var(--eb-brand-500);
+  --eb-accent-soft: color-mix(in srgb, var(--eb-accent) 8%, var(--eb-surface));
+  --eb-accent-ring: color-mix(in srgb, var(--eb-accent) 30%, transparent);
+  --eb-on-accent: var(--eb-text-inverse);
+  --eb-on-accent-muted: var(--eb-brand-300);
+  --eb-on-accent-subtle: var(--eb-brand-400);
+  --eb-highlight: var(--eb-lime-200);
+
+  /* Status */
+  --eb-info: var(--eb-cyan-500);
+  --eb-info-hover: var(--eb-cyan-600);
+  --eb-info-soft: var(--eb-sky-100);
+  --eb-info-text: var(--eb-sky-600);
+  --eb-link: var(--eb-blue-500);
+  --eb-danger: var(--eb-red-500);
+  --eb-danger-strong: var(--eb-red-700);
+  --eb-danger-soft: var(--eb-red-50);
+  --eb-warning: var(--eb-amber-500);
+  --eb-warning-strong: var(--eb-amber-600);
+  --eb-warning-text: var(--eb-amber-800);
+  --eb-warning-soft: var(--eb-amber-50);
+  --eb-success: var(--eb-emerald-500);
+  --eb-success-strong: var(--eb-emerald-700);
+  --eb-success-soft: var(--eb-emerald-50);
+  --eb-success-muted: var(--eb-emerald-200);
+
+  /* Elevation — one shadow colour; every shadow in the stylesheets is a mix of it */
+  --eb-shadow-color: var(--eb-black);
+  --eb-shadow-1: 0 1px 2px color-mix(in srgb, var(--eb-shadow-color) 6%, transparent),
+    0 1px 3px color-mix(in srgb, var(--eb-shadow-color) 4%, transparent);
+  --eb-shadow-2: 0 1px 3px color-mix(in srgb, var(--eb-shadow-color) 9%, transparent),
+    0 6px 16px color-mix(in srgb, var(--eb-shadow-color) 7%, transparent);
+  --eb-shadow-3: 0 2px 6px color-mix(in srgb, var(--eb-shadow-color) 10%, transparent),
+    0 16px 40px color-mix(in srgb, var(--eb-shadow-color) 12%, transparent);
+
+  /* Geometry */
+  --eb-radius-sm: 4px;
+  --eb-radius: 8px;
+  --eb-radius-lg: 12px;
+  --eb-rail-width: 268px;
+  --eb-inspector-width: 320px;
+  --eb-toolbar-height: 52px;
+  --eb-control-height: 34px;
+  --eb-input-height: 36px;
+
+  /* Motion */
+  --eb-duration-fast: 120ms;
+  --eb-duration: 180ms;
+  --eb-ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --eb-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Type — `inherit` the host's font by setting --eb-font: inherit */
+  --eb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --eb-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --eb-text-xs: 11px;
+  --eb-text-sm: 12px;
+  --eb-text-md: 13px;
+  --eb-text-lg: 15px;
+
+  /* Z-index — one scale, declared once */
+  --eb-z-sticky: 10;
+  --eb-z-chrome: 20;
+  --eb-z-indicator: 60;
+  --eb-z-popover: 80;
+  --eb-z-modal: 100;
+  --eb-z-ghost: 120;
+}
+
+/* ── Dark ──
+ *
+ * Opt-in via `data-eb-theme="dark"`, and via `prefers-color-scheme` only for `auto`. Only the
+ * semantic tier changes; the palette tier is never read directly, so it needs no dark twin.
+ * The two blocks below must stay identical. */
+
+.eb-root[data-eb-theme="dark"] {
+  --eb-bg: #0b1120;
+  --eb-surface: #121a2b;
+  --eb-surface-subtle: #152036;
+  --eb-surface-sunken: #0f1626;
+  --eb-surface-raised: #18223a;
+  --eb-surface-inverse: #1e293b;
+  --eb-overlay: color-mix(in srgb, #020617 70%, transparent);
+  --eb-text: #e2e8f0;
+  --eb-text-secondary: #cbd5e1;
+  --eb-text-muted: #94a3b8;
+  --eb-text-subtle: #64748b;
+  --eb-border: #1e293b;
+  --eb-border-strong: #334155;
+  --eb-accent: var(--eb-brand-450);
+  --eb-accent-hover: var(--eb-brand-400);
+  --eb-accent-line: var(--eb-brand-400);
+  --eb-accent-soft: color-mix(in srgb, var(--eb-accent) 18%, var(--eb-surface));
+  --eb-accent-ring: color-mix(in srgb, var(--eb-accent) 45%, transparent);
+  --eb-info-soft: #0c2533;
+  --eb-info-text: #7dd3fc;
+  --eb-danger-soft: #2a1414;
+  --eb-warning-soft: #2a2010;
+  --eb-warning-text: #fcd34d;
+  --eb-success-soft: #0d2320;
+  --eb-success-muted: #134e3a;
+  --eb-success-strong: #6ee7b7;
+  --eb-shadow-1: 0 1px 2px color-mix(in srgb, var(--eb-shadow-color) 40%, transparent);
+  --eb-shadow-2: 0 2px 6px color-mix(in srgb, var(--eb-shadow-color) 45%, transparent),
+    0 8px 24px color-mix(in srgb, var(--eb-shadow-color) 35%, transparent);
+  --eb-shadow-3: 0 4px 12px color-mix(in srgb, var(--eb-shadow-color) 50%, transparent),
+    0 20px 48px color-mix(in srgb, var(--eb-shadow-color) 45%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .eb-root[data-eb-theme="auto"] {
+    --eb-bg: #0b1120;
+    --eb-surface: #121a2b;
+    --eb-surface-subtle: #152036;
+    --eb-surface-sunken: #0f1626;
+    --eb-surface-raised: #18223a;
+    --eb-surface-inverse: #1e293b;
+    --eb-overlay: color-mix(in srgb, #020617 70%, transparent);
+    --eb-text: #e2e8f0;
+    --eb-text-secondary: #cbd5e1;
+    --eb-text-muted: #94a3b8;
+    --eb-text-subtle: #64748b;
+    --eb-border: #1e293b;
+    --eb-border-strong: #334155;
+    --eb-accent: var(--eb-brand-450);
+    --eb-accent-hover: var(--eb-brand-400);
+    --eb-accent-line: var(--eb-brand-400);
+    --eb-accent-soft: color-mix(in srgb, var(--eb-accent) 18%, var(--eb-surface));
+    --eb-accent-ring: color-mix(in srgb, var(--eb-accent) 45%, transparent);
+    --eb-info-soft: #0c2533;
+    --eb-info-text: #7dd3fc;
+    --eb-danger-soft: #2a1414;
+    --eb-warning-soft: #2a2010;
+    --eb-warning-text: #fcd34d;
+    --eb-success-soft: #0d2320;
+    --eb-success-muted: #134e3a;
+    --eb-success-strong: #6ee7b7;
+    --eb-shadow-1: 0 1px 2px color-mix(in srgb, var(--eb-shadow-color) 40%, transparent);
+    --eb-shadow-2: 0 2px 6px color-mix(in srgb, var(--eb-shadow-color) 45%, transparent),
+      0 8px 24px color-mix(in srgb, var(--eb-shadow-color) 35%, transparent);
+    --eb-shadow-3: 0 4px 12px color-mix(in srgb, var(--eb-shadow-color) 50%, transparent),
+      0 20px 48px color-mix(in srgb, var(--eb-shadow-color) 45%, transparent);
+  }
+}

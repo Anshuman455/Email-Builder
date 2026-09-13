@@ -85,7 +85,7 @@ export type { CompilerDeps } from "./compile/compile";
 export { wrapDocument, resetCss, preheaderHtml } from "./compile/shell";
 export type { ShellOptions } from "./compile/shell";
 export { toPlainText } from "./compile/plain-text";
-export { sanitizeHtml, isSanitary } from "./compile/sanitize";
+export { sanitizeBlockContent, sanitizeHtml, isSanitary } from "./compile/sanitize";
 export type { SanitizeOptions } from "./compile/sanitize";
 export {
   preflight,

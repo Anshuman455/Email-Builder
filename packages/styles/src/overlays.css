@@ -148,7 +148,7 @@
   height: 540px;
   min-height: 480px;
   border: 0;
-  background: #fff;
+  background: var(--eb-surface);
   border-radius: var(--eb-radius);
   box-shadow: var(--eb-shadow-2);
   transition: max-width var(--eb-duration) var(--eb-ease-out);

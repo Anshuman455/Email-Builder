@@ -33,3 +33,4 @@ export type {
   NotifyAdapter,
   UploadedAsset,
 } from "./adapter";
+export { EDITOR_ICONS, editorIcon, type EditorIconName } from "./icons";

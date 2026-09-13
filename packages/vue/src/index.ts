@@ -18,7 +18,6 @@ export { default as BuilderInspector } from "./components/BuilderInspector.vue";
 export { default as BuilderField } from "./components/BuilderField.vue";
 export { default as BuilderPreview } from "./components/BuilderPreview.vue";
 export { default as BuilderCodeView } from "./components/BuilderCodeView.vue";
-export { default as PreflightPanel } from "./components/PreflightPanel.vue";
 export { default as DragLayer } from "./components/DragLayer.vue";
 
 /* ── Context ── */

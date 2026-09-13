@@ -7,9 +7,15 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "vite build && vue-tsc --emitDeclarationOnly -p tsconfig.build.json"
@@ -25,5 +31,11 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "vue": "^3.5.13",
     "vue-tsc": "^2.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/vue"
+  },
+  "main": "./dist/index.cjs"
 }

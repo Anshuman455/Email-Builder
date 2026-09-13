@@ -23,7 +23,9 @@ export const MIN_CONTRAST = 4.5;
 export interface PreflightOptions {
   /** Skip checks by id prefix — a host that genuinely has no unsubscribe requirement. */
   disable?: string[];
-  /** Hard requirement: the document must contain a footer block. */
+  /** Require a `footer` block: `true` reports its absence as an error. Off by default — the
+   *  footer block is not registered by default, and most senders append the unsubscribe link and
+   *  postal address at send time rather than in the design. */
   requireFooter?: boolean;
   requirePreheader?: boolean;
 }
@@ -120,10 +122,10 @@ export function preflight(doc: EmailDocument, deps: CompilerDeps, options: Prefl
 
   /* ── Compliance ── */
 
-  if (options.requireFooter !== false && !hasFooter) {
+  if (options.requireFooter && !hasFooter) {
     issues.push({
       id: "no-footer",
-      severity: options.requireFooter ? SEVERITY.ERROR : SEVERITY.WARNING,
+      severity: SEVERITY.ERROR,
       message: "No footer block.",
       hint: "Bulk email needs a postal address and an unsubscribe link in most jurisdictions.",
     });

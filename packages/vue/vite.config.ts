@@ -1,7 +1,7 @@
 /* ═══ Build ═══
  *
- * Library mode, ES only: the consumer is always a bundler, and a UMD build of a package whose
- * peer is Vue buys nothing but a second artefact to keep in step. Declarations come from
+ * Library mode, ES + CommonJS — matching core, engine and react, so a `require()`-based toolchain
+ * (Jest, older SSR setups) can load it. No UMD: a package whose peer is Vue gains nothing from it. Declarations come from
  * `vue-tsc` afterwards, because Rollup cannot type-check an SFC. */
 
 import { defineConfig } from "vite";
@@ -15,8 +15,8 @@ export default defineConfig({
     emptyOutDir: true,
     lib: {
       entry: "src/index.ts",
-      formats: ["es"],
-      fileName: () => "index.js",
+      formats: ["es", "cjs"],
+      fileName: (format) => (format === "es" ? "index.js" : "index.cjs"),
     },
     rollupOptions: {
       /* Vue is a peer, and core/engine are shared with whatever else the host renders — two

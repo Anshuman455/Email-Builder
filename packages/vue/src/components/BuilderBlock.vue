@@ -19,6 +19,7 @@ import { useDragState, useEditorSelector } from "../composables";
 import { compileBlockPreview } from "../preview";
 import { vDrag, vDrop } from "../directives";
 import MentionMenu from "./MentionMenu.vue";
+import EbGlyph from "./EbGlyph.vue";
 
 const props = defineProps<{ block: Block; row: Row; column: Column; columnIndex: number }>();
 
@@ -319,8 +320,8 @@ onUnmounted(() => {
       <div class="builder-drop-indicator__line" />
       <span class="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
       <span class="builder-drop-indicator__pill">
-        <span class="material-symbols-outlined" style="font-size: 13px; margin-right: 4px;">add</span>
-        Drop block {{ edge === 'after' ? 'below' : 'above' }}
+        <EbGlyph name="add" style="font-size: 13px; margin-right: 4px;" />
+        {{ t(edge === 'after' ? 'block.dropBelow' : 'block.dropAbove') }}
       </span>
       <span class="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
     </div>
@@ -332,52 +333,53 @@ onUnmounted(() => {
       <button
         type="button"
         class="builder-block__action eb-block__toolbar-btn eb-block__toolbar-btn--drag"
-        aria-label="Move block"
-        title="Move block"
+        data-eb-drag-handle
+        :aria-label="t('block.move')"
+        :title="t('block.move')"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+        <EbGlyph name="drag_indicator" />
       </button>
 
       <button
         type="button"
         class="builder-block__action eb-block__toolbar-btn"
-        aria-label="Move block up"
+        :aria-label="t('block.moveUp')"
         :disabled="blockIndex === 0"
-        title="Move block up"
+        :title="t('block.moveUp')"
         @click.stop="moveBlock(-1)"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+        <EbGlyph name="arrow_upward" />
       </button>
 
       <button
         type="button"
         class="builder-block__action eb-block__toolbar-btn"
-        aria-label="Move block down"
+        :aria-label="t('block.moveDown')"
         :disabled="blockIndex >= totalBlocks - 1"
-        title="Move block down"
+        :title="t('block.moveDown')"
         @click.stop="moveBlock(1)"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+        <EbGlyph name="arrow_downward" />
       </button>
 
       <button
         type="button"
         class="builder-block__action eb-block__toolbar-btn"
-        aria-label="Duplicate block"
-        title="Duplicate block"
+        :aria-label="t('block.duplicate')"
+        :title="t('block.duplicate')"
         @click.stop="editor.duplicateBlock(block.id)"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+        <EbGlyph name="content_copy" />
       </button>
 
       <button
         type="button"
         class="builder-block__action eb-block__toolbar-btn builder-block__action--danger eb-block__toolbar-btn--danger"
-        aria-label="Delete block"
-        title="Delete block"
+        :aria-label="t('block.delete')"
+        :title="t('block.delete')"
         @click.stop="editor.removeBlock(block.id)"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+        <EbGlyph name="delete" />
       </button>
     </div>
 

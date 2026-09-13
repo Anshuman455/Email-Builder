@@ -1,191 +1,104 @@
 /* ═══ BuilderToolbar ═══
  *
- * Top toolbar:
- * Left: Back button, Title, "EMAIL TEMPLATE" badge, Subtitle, Undo/Redo pill group, Save status
- * Right: AI Assistant, Import, Code, Ready status, Preview
- */
+ * The command bar above the email: history on the left, the viewport switch in the
+ * middle, output actions on the right. It lives in the canvas column rather than across the top of
+ * the page, so the builder brings no app header of its own into a host's layout. */
 
-import { useEditor } from "../context";
+import { useEditor, useTranslator } from "../context";
 import { useEditorSelector } from "../hooks/useEditorState";
+import { Glyph } from "./Glyph";
+
+export type BuilderDevice = "desktop" | "mobile";
 
 export interface BuilderToolbarProps {
-  title?: string;
-  subtitle?: string;
-  badgeLabel?: string;
-  backLabel?: string;
-  onBack?: () => void;
+  device: BuilderDevice;
+  onDeviceChange: (device: BuilderDevice) => void;
+  /** Width the canvas is currently previewing, in px. */
+  width: number;
   onPreview?: () => void;
   onCodeView?: () => void;
-  onPreflight?: () => void;
-  onImport?: () => void;
-  onAI?: () => void;
   className?: string;
 }
 
-export function BuilderToolbar({
-  title = "Monthly Newsletter",
-  subtitle = "A monthly update for our community",
-  badgeLabel = "EMAIL TEMPLATE",
-  backLabel = "Templates",
-  onBack,
-  onPreview,
-  onCodeView,
-  onPreflight,
-  onImport,
-  onAI,
-  className,
-}: BuilderToolbarProps) {
+const DEVICES: BuilderDevice[] = ["desktop", "mobile"];
+
+export function BuilderToolbar({ device, onDeviceChange, width, onPreview, onCodeView, className }: BuilderToolbarProps) {
   const editor = useEditor();
+  const t = useTranslator();
   const canUndo = useEditorSelector((state) => state.canUndo);
   const canRedo = useEditorSelector((state) => state.canRedo);
-  const saveStatus = useEditorSelector((state) => state.saveStatus);
-
-  let statusTone = "saved";
-  let statusIcon = "cloud_done";
-  let statusLabel = "Saved 30s ago";
-
-  if (saveStatus === "dirty") {
-    statusTone = "dirty";
-    statusIcon = "edit";
-    statusLabel = "Unsaved changes";
-  } else if (saveStatus === "saving") {
-    statusTone = "busy";
-    statusIcon = "sync";
-    statusLabel = "Saving…";
-  } else if (saveStatus === "error") {
-    statusTone = "error";
-    statusIcon = "error";
-    statusLabel = "Save error";
-  }
 
   return (
-    <header className={`builder-toolbar ${className ?? ""}`.trim()}>
-      {/* Left: Back button, Title & Badge, Undo/Redo, Save status */}
-      <div className="builder-toolbar__side">
-        {onBack && (
-          <>
-            <button
-              type="button"
-              className="builder-toolbar__back-btn"
-              title={`Back to ${backLabel}`}
-              onClick={onBack}
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-              <span className="builder-toolbar__back-label">{backLabel}</span>
-            </button>
-            <span className="builder-toolbar__divider" aria-hidden="true" />
-          </>
-        )}
-
-        <div className="builder-toolbar__title-meta">
-          <div className="builder-toolbar__title-row">
-            <span className="builder-toolbar__title-text" title={title}>{title}</span>
-            {badgeLabel && <span className="builder-toolbar__badge">{badgeLabel}</span>}
-          </div>
-          {subtitle && (
-            <span className="builder-toolbar__subtitle-text" title={subtitle}>
-              {subtitle}
-            </span>
-          )}
-        </div>
-
-        <span className="builder-toolbar__divider" aria-hidden="true" />
-
-        {/* Undo / Redo group */}
-        <div className="builder-toolbar__undo-group" role="group" aria-label="Undo and Redo">
+    <div
+      className={className ? `eb-commandbar ${className}` : "eb-commandbar"}
+      role="toolbar"
+      aria-label={t("toolbar.label")}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="eb-commandbar__start">
+        <div className="eb-commandbar__group">
           <button
             type="button"
-            className="builder-toolbar__undo-btn"
+            className="eb-commandbar__icon-btn"
             disabled={!canUndo}
-            aria-label="Undo (⌘Z)"
-            title="Undo (⌘Z)"
+            aria-label={t("toolbar.undo")}
+            title={`${t("toolbar.undo")} (⌘Z)`}
             onClick={() => editor.undo()}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">undo</span>
+            <Glyph name="undo" />
           </button>
-          <span className="builder-toolbar__undo-sep" aria-hidden="true" />
           <button
             type="button"
-            className="builder-toolbar__undo-btn"
+            className="eb-commandbar__icon-btn"
             disabled={!canRedo}
-            aria-label="Redo (⌘⇧Z)"
-            title="Redo (⌘⇧Z)"
+            aria-label={t("toolbar.redo")}
+            title={`${t("toolbar.redo")} (⌘⇧Z)`}
             onClick={() => editor.redo()}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">redo</span>
+            <Glyph name="redo" />
           </button>
-        </div>
-
-        <span className="builder-toolbar__divider" aria-hidden="true" />
-
-        {/* Save status badge */}
-        <div className={`builder-toolbar__status builder-toolbar__status--${statusTone}`}>
-          <span className="material-symbols-outlined builder-toolbar__status-icon" aria-hidden="true">
-            {statusIcon}
-          </span>
-          <span className="builder-toolbar__status-label">{statusLabel}</span>
         </div>
       </div>
 
-      {/* Right: AI, Import, Code, Ready, Preview */}
-      <div className="builder-toolbar__side builder-toolbar__side--end">
-        <div className="builder-toolbar__group">
-          {onAI && (
+      <div className="eb-commandbar__center">
+        <div className="eb-commandbar__segmented" role="radiogroup" aria-label={t("toolbar.viewport")}>
+          {DEVICES.map((option) => (
             <button
+              key={option}
               type="button"
-              className="builder-toolbar__pill builder-toolbar__pill--ai"
-              title="Write or polish with AI Assistant"
-              onClick={onAI}
+              role="radio"
+              aria-checked={device === option}
+              className={`eb-commandbar__segment${device === option ? " eb-commandbar__segment--active" : ""}`}
+              title={t(`toolbar.${option}`)}
+              onClick={() => onDeviceChange(option)}
             >
-              <span className="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-              <span className="builder-toolbar__pill-label">AI Assistant</span>
+              <Glyph name={option === "desktop" ? "desktop" : "smartphone"} />
+              <span className="eb-commandbar__label">{t(`toolbar.${option}`)}</span>
             </button>
-          )}
+          ))}
+        </div>
+        <span className="eb-commandbar__width">{width}px</span>
+      </div>
 
-          {onImport && (
-            <button
-              type="button"
-              className="builder-toolbar__pill"
-              title="Import Template"
-              onClick={onImport}
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">file_upload</span>
-              <span className="builder-toolbar__pill-label">Import</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            className="builder-toolbar__pill"
-            title="View Code"
-            onClick={onCodeView}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">code</span>
-            <span className="builder-toolbar__pill-label">Code</span>
+      <div className="eb-commandbar__end">
+        {onCodeView && (
+          <button type="button" className="eb-commandbar__btn" title={t("toolbar.code")} onClick={onCodeView}>
+            <Glyph name="code" />
+            <span className="eb-commandbar__label">{t("toolbar.code")}</span>
           </button>
-
+        )}
+        {onPreview && (
           <button
             type="button"
-            className="builder-toolbar__pill builder-toolbar__pill--preflight builder-toolbar__pill--ready"
-            title="Preflight checks"
-            onClick={onPreflight}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
-            <span className="builder-toolbar__pill-label">Ready</span>
-          </button>
-
-          <button
-            type="button"
-            className="builder-toolbar__pill builder-toolbar__pill--preview"
-            title="Preview (⌘P)"
+            className="eb-commandbar__btn eb-commandbar__btn--primary"
+            title={`${t("toolbar.preview")} (⌘P)`}
             onClick={onPreview}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
-            <span className="builder-toolbar__pill-label">Preview</span>
+            <Glyph name="visibility" />
+            <span className="eb-commandbar__label">{t("toolbar.preview")}</span>
           </button>
-        </div>
+        )}
       </div>
-    </header>
+    </div>
   );
 }
-

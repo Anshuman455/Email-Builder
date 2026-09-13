@@ -18,6 +18,7 @@ import { useDraggable, useDroppable } from "../hooks/useDnd";
 import { useEditorSelector } from "../hooks/useEditorState";
 import { compileBlockPreview } from "../preview";
 import { MentionMenu } from "./MentionMenu";
+import { Glyph } from "./Glyph";
 
 export interface BuilderBlockProps {
   block: Block;
@@ -107,8 +108,8 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
           <div className="builder-drop-indicator__line" />
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--left" />
           <span className="builder-drop-indicator__pill">
-            <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 4 }}>add</span>
-            Drop block {drop.edge === "after" ? "below" : "above"}
+            <Glyph name="add" style={{ fontSize: 13, marginRight: 4 }} />
+            {t(drop.edge === "after" ? "block.dropBelow" : "block.dropAbove")}
           </span>
           <span className="builder-drop-indicator__pip builder-drop-indicator__pip--right" />
         </div>
@@ -121,66 +122,67 @@ export function BuilderBlock({ block, row, column, columnIndex }: BuilderBlockPr
         <button
           type="button"
           ref={drag.setHandle}
+          data-eb-drag-handle
           className="builder-block__action eb-block__toolbar-btn eb-block__toolbar-btn--drag"
           aria-label={t("block.move")}
-          title="Move block"
+          title={t("block.move")}
           aria-roledescription="draggable"
         >
-          <span className="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+          <Glyph name="drag_indicator" />
         </button>
 
         <button
           type="button"
           className="builder-block__action eb-block__toolbar-btn"
-          aria-label="Move block up"
+          aria-label={t("block.moveUp")}
           disabled={blockIndex === 0}
-          title="Move block up"
+          title={t("block.moveUp")}
           onClick={(event) => {
             event.stopPropagation();
             moveBlock(-1);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+          <Glyph name="arrow_upward" />
         </button>
 
         <button
           type="button"
           className="builder-block__action eb-block__toolbar-btn"
-          aria-label="Move block down"
+          aria-label={t("block.moveDown")}
           disabled={blockIndex >= totalBlocks - 1}
-          title="Move block down"
+          title={t("block.moveDown")}
           onClick={(event) => {
             event.stopPropagation();
             moveBlock(1);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+          <Glyph name="arrow_downward" />
         </button>
 
         <button
           type="button"
           className="builder-block__action eb-block__toolbar-btn"
-          aria-label="Duplicate block"
-          title="Duplicate block"
+          aria-label={t("block.duplicate")}
+          title={t("block.duplicate")}
           onClick={(event) => {
             event.stopPropagation();
             editor.duplicateBlock(block.id);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">content_copy</span>
+          <Glyph name="content_copy" />
         </button>
 
         <button
           type="button"
           className="builder-block__action eb-block__toolbar-btn builder-block__action--delete eb-block__toolbar-btn--danger"
-          aria-label="Delete block"
-          title="Delete block"
+          aria-label={t("block.delete")}
+          title={t("block.delete")}
           onClick={(event) => {
             event.stopPropagation();
             editor.removeBlock(block.id);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+          <Glyph name="delete" />
         </button>
       </div>
 

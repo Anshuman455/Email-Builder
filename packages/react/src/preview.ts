@@ -13,6 +13,8 @@ import {
   escapeAttr,
   escapeHtml,
   safeUrl,
+  sanitizeBlockContent,
+  sanitizeHtml,
   styleAttr,
   type Block,
   type BlockDefinition,
@@ -37,10 +39,14 @@ export function compileBlockPreview({ editor, block, row, columnIndex }: BlockPr
 
   const document = editor.getDocument();
   const context = makeContext(editor, document, block, row, columnIndex);
+  /* Same policy as core's compiler: rich-text fields are cleaned before rendering, and an HTML
+     block's output is cleaned after. This canvas is a live DOM in the host's origin. */
+  context.content = sanitizeBlockContent(definition, context.content);
   const render = definition.preview ?? definition.render;
 
   try {
-    return render(context) ?? "";
+    const html = render(context) ?? "";
+    return block.type === "html" ? sanitizeHtml(html) : html;
   } catch {
     return `<div class="eb-placeholder eb-placeholder--error">"${escapeHtml(definition.label)}" failed to render</div>`;
   }

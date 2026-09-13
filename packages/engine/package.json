@@ -24,5 +24,10 @@
   },
   "dependencies": {
     "@email-builder/core": "0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anshuman455/Email-Builder.git",
+    "directory": "packages/engine"
   }
 }
