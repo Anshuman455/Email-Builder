@@ -2,6 +2,12 @@
 
 All notable changes to the `@email-builder/*` packages. The five packages are versioned together.
 
+## 0.2.1
+
+Re-release of 0.2.0 with no code changes. `@email-builder/core@0.2.0` could not be published, which
+left `engine`, `react` and `vue` 0.2.0 depending on a version that doesn't exist, so they could not
+be installed. Use 0.2.1; the 0.2.0 releases are deprecated.
+
 ## 0.2.0
 
 ### Added

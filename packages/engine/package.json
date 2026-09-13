@@ -1,6 +1,6 @@
 {
   "name": "@email-builder/engine",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Headless editor controller, drag engine and inline-edit controller. Framework-agnostic DOM.",
   "keywords": [
     "email",
@@ -45,7 +45,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@email-builder/core": "0.2.0"
+    "@email-builder/core": "0.2.1"
   },
   "publishConfig": {
     "access": "public"

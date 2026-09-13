@@ -1,7 +1,7 @@
 {
   "name": "email-builder",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Framework-agnostic drag-and-drop email builder for React and Vue 3.",
   "license": "MIT",
   "author": "Anshuman Kumar Kushwaha",
